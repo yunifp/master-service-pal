@@ -1,0 +1,47 @@
+const { DataTypes } = require("sequelize");
+const { sequelize } = require("../core/db_config");
+const RefJalur = require("./RefJalur");
+
+const RefSyaratKhususBeasiswa = sequelize.define(
+  "RefSyaratKhususBeasiswa",
+  {
+    id: {
+      type: DataTypes.INTEGER(10),
+      primaryKey: true,
+      autoIncrement: true,
+      allowNull: false,
+    },
+    id_jalur: {
+      type: DataTypes.INTEGER(10),
+      allowNull: true,
+      references: {
+        model: RefJalur,
+        key: "id",
+      },
+    },
+    persyaratan: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    status_aktif: {
+      type: DataTypes.ENUM("Y", "N"),
+      allowNull: true,
+      defaultValue: "Y",
+    },
+    valid_type: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    is_required: {
+      type: DataTypes.ENUM("Y", "N"),
+      allowNull: true,
+      defaultValue: "Y",
+    },
+  },
+  {
+    tableName: "ref_syarat_khusus_beasiswa",
+    timestamps: false,
+  }
+);
+
+module.exports = RefSyaratKhususBeasiswa;
