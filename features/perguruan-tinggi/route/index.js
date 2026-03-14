@@ -12,6 +12,8 @@ const {
   postPerguruanTinggiHasPerubahan,
   getPerguruanTinggiHasPerubahan,
   updatePerguruanTinggiPengajuan,
+  createPerguruanTinggi, 
+  deletePerguruanTinggi,
 } = require("../controller");
 const {
   uploadConfigs,
@@ -47,5 +49,8 @@ router.put(
   uploadConfigs.logo_perguruan_tinggi.single("logo"),
   updatePerguruanTinggiPengajuan,
 );
+
+router.post("/", uploadConfigs.logo_perguruan_tinggi.single("logo"), createPerguruanTinggi);
+router.delete("/:id", deletePerguruanTinggi);
 
 module.exports = router;

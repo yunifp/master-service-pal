@@ -24,12 +24,16 @@ app.use(
 app.use("/uploads", express.static(process.env.FILE_URL || "E:/upload_palma"));
 
 app.use("/api/master/wilayah", require("./features/wilayah/route"));
+
 app.use(
   "/api/master/perguruan-tinggi",
   require("./features/perguruan-tinggi/route"),
 );
-app.use("/api/master/beasiswa", require("./features/beasiswa/route"));
 
+app.use("/api/master/program-studi", require("./features/program-studi/route"));
+
+app.use("/api/master/beasiswa", require("./features/beasiswa/route"));
+app.use("/api/master/setting-jurusan-prodi", require("./features/setting-jurusan-prodi/route"));
 app.use(
   "/api/master/lembaga-pendidikan",
   require("./features/lembaga-pendidikan/route"),

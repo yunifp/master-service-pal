@@ -4,7 +4,7 @@ const {
   RefMappingJurusanPtProdi,
 } = require("../../../models");
 const { successResponse, errorResponse } = require("../../../common/response");
-const { getFileUrl } = require("../../../common/middleware/upload_middleware");
+const { getFileUrl, deleteFile } = require("../../../common/middleware/upload_middleware");
 const { Op } = require("sequelize");
 
 exports.getPerguruanTinggiByPagination = async (req, res) => {
@@ -14,9 +14,16 @@ exports.getPerguruanTinggiByPagination = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
     const search = req.query.search || "";
+
+    // 1. PERBAIKAN: Gunakan Op.like untuk MySQL / MariaDB
     const whereCondition = search
       ? {
-          [Op.or]: [{ nama_pt: { [Op.like]: `%${search}%` } }],
+          [Op.or]: [
+            { nama_pt: { [Op.like]: `%${search}%` } },
+            { singkatan: { [Op.like]: `%${search}%` } },
+            { kota: { [Op.like]: `%${search}%` } },
+            { kode_pt: { [Op.like]: `%${search}%` } }
+          ],
         }
       : {};
 
@@ -36,7 +43,8 @@ exports.getPerguruanTinggiByPagination = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    return errorResponse("Internal Server Error");
+    // 2. PERBAIKAN: Tambahkan parameter 'res' di depan string pesan error
+    return errorResponse(res, "Internal Server Error");
   }
 };
 
@@ -394,6 +402,109 @@ exports.updatePerguruanTinggiPengajuan = async (req, res) => {
 
     return successResponse(res, "Perguruan tinggi berhasil diperbarui");
   } catch (error) {
+    return errorResponse(res, "Internal Server Error");
+  }
+};
+
+
+exports.createPerguruanTinggi = async (req, res) => {
+  try {
+    const {
+      nama_pt,
+      kode_pt,
+      singkatan,
+      alamat,
+      jenis,
+      no_telepon_pt,
+      fax_pt,
+      no_telepon_pimpinan,
+      kota,
+      kode_pos,
+      email,
+      website,
+      nama_pimpinan,
+      jabatan_pimpinan,
+      no_rekening,
+      nama_bank,
+      nama_penerima_transfer,
+      npwp,
+      status_aktif,
+      nama_operator,
+      no_telepon_operator,
+      email_operator,
+      nama_verifikator,
+      no_telepon_verifikator,
+      email_verifikator,
+    } = req.body;
+
+    const payload = {
+      nama_pt,
+      kode_pt,
+      singkatan,
+      alamat,
+      jenis,
+      no_telepon_pt,
+      fax_pt,
+      no_telepon_pimpinan,
+      kota,
+      kode_pos,
+      email,
+      website,
+      nama_pimpinan,
+      jabatan_pimpinan,
+      no_rekening,
+      nama_bank,
+      nama_penerima_transfer,
+      npwp,
+      status_aktif,
+      nama_operator,
+      no_telepon_operator,
+      email_operator,
+      nama_verifikator,
+      no_telepon_verifikator,
+      email_verifikator,
+      has_pengajuan_perubahan: 0,
+    };
+
+    Object.keys(payload).forEach(
+      (key) => payload[key] === undefined && delete payload[key],
+    );
+
+    if (req.file) {
+      payload.logo_path = req.file.filename;
+    }
+
+    const newPt = await RefPerguruanTinggi.create(payload);
+
+    return successResponse(res, "Perguruan tinggi berhasil ditambahkan", newPt, 201);
+  } catch (error) {
+    console.error(error);
+    return errorResponse(res, "Internal Server Error");
+  }
+};
+
+
+exports.deletePerguruanTinggi = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const perguruanTinggi = await RefPerguruanTinggi.findOne({
+      where: { id_pt: id },
+    });
+
+    if (!perguruanTinggi) {
+      return errorResponse(res, "Perguruan tinggi tidak ditemukan", 404);
+    }
+
+    if (perguruanTinggi.logo_path) {
+      deleteFile("logo_perguruan_tinggi", perguruanTinggi.logo_path);
+    }
+
+    await perguruanTinggi.destroy();
+
+    return successResponse(res, "Perguruan tinggi berhasil dihapus");
+  } catch (error) {
+    console.error(error);
     return errorResponse(res, "Internal Server Error");
   }
 };

@@ -15,6 +15,7 @@ const RefAgama = require("./RefAgama");
 const RefSuku = require("./RefSuku");
 const RefBank = require("./RefBank");
 const RefNpsn = require("./RefNpsn");
+const RefJurusanSekolah = require("./RefJurusanSekolah");
 
 // Buat object models supaya gampang akses
 const models = {
@@ -35,6 +36,7 @@ const models = {
   RefSuku,
   RefBank,
   RefNpsn,
+  RefJurusanSekolah,
 };
 
 RefProgramStudi.belongsTo(RefPerguruanTinggi, {
