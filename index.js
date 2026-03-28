@@ -4,7 +4,7 @@ const cors = require("cors");
 const morgan = require("morgan");
 const bodyParser = require("body-parser");
 const multerErrorHandler = require("./common/middleware/multerErrorHandler");
-
+const checkAuthorization = require("./common/middleware/auth_middleware");
 const app = express();
 app.set("trust proxy", true);
 app.use(
@@ -44,6 +44,12 @@ app.use("/api/master/sekolah", require("./features/sekolah/route"));
 app.use("/api/master/pks", require("./features/pks/route"));
 
 app.use("/api/master/bank", require("./features/bank/route"));
+
+app.use(
+  "/api/master/dashboard",
+  checkAuthorization,
+  require("./features/dashboard/route")
+);
 
 app.use(multerErrorHandler);
 
