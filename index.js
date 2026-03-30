@@ -51,6 +51,40 @@ app.use(
   require("./features/dashboard/route")
 );
 
+app.use(
+  "/api/master/referensi-wilayah",
+  checkAuthorization,
+  require("./features/referensi-wilayah/route")
+);
+
+app.use(
+  "/api/master/wilayah-khusus",
+  checkAuthorization,
+  require("./features/wilayah-khusus/route")
+);
+
+app.use(
+  "/api/master/agama",
+  checkAuthorization,
+  require("./features/agama/route")
+);
+
+app.use(
+  "/api/master/pekerjaan",
+  checkAuthorization,
+  require("./features/pekerjaan/route")
+);
+
+app.use("/api/master/jalur", checkAuthorization, require("./features/jalur/route"));
+app.use("/api/master/suku", checkAuthorization, require("./features/suku/route"));
+app.use("/api/master/dokumen-umum", checkAuthorization, require("./features/dokumen-umum/route"));
+app.use("/api/master/dokumen-khusus", checkAuthorization, require("./features/dokumen-khusus/route"));
+
+app.use(
+  "/api/master/penghasilan",
+  checkAuthorization,
+  require("./features/penghasilan/route")
+);
 app.use(multerErrorHandler);
 
 module.exports = app;
