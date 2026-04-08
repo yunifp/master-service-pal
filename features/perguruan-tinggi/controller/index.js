@@ -18,13 +18,13 @@ exports.getPerguruanTinggiByPagination = async (req, res) => {
     // 1. PERBAIKAN: Gunakan Op.like untuk MySQL / MariaDB
     const whereCondition = search
       ? {
-          [Op.or]: [
-            { nama_pt: { [Op.like]: `%${search}%` } },
-            { singkatan: { [Op.like]: `%${search}%` } },
-            { kota: { [Op.like]: `%${search}%` } },
-            { kode_pt: { [Op.like]: `%${search}%` } }
-          ],
-        }
+        [Op.or]: [
+          { nama_pt: { [Op.like]: `%${search}%` } },
+          { singkatan: { [Op.like]: `%${search}%` } },
+          { kota: { [Op.like]: `%${search}%` } },
+          { kode_pt: { [Op.like]: `%${search}%` } }
+        ],
+      }
       : {};
 
     // Ambil data role + total count
@@ -204,6 +204,39 @@ exports.getProgramStudiByPerguruanTinggi = async (req, res) => {
 };
 
 // Get semua perguruan tinggi sesuai dengan jurusan sekolah
+// exports.getPerguruanTinggiByJurusanSekolah = async (req, res) => {
+//   try {
+//     const { id_jurusan_sekolah } = req.params;
+
+//     const perguruanTinggi = await RefPerguruanTinggi.findAll({
+//       attributes: ["id_pt", "nama_pt", "singkatan", "jenis", "kota"],
+//       include: [
+//         {
+//           model: RefMappingJurusanPtProdi,
+//           as: "mappingJurusan",
+//           attributes: [],
+//           where: {
+//             id_jurusan_sekolah,
+//           },
+//         },
+//       ],
+//       group: ["RefPerguruanTinggi.id_pt"],
+//       order: [["id_pt", "ASC"]],
+//       raw: true, // 🔥 hasil FLAT
+//     });
+
+//     return successResponse(
+//       res,
+//       "Data perguruan tinggi berhasil dimuat",
+//       perguruanTinggi,
+//     );
+//   } catch (error) {
+//     console.error(error);
+//     return errorResponse(res, "Internal Server Error");
+//   }
+// };
+
+// Get semua perguruan tinggi sesuai dengan jurusan sekolah
 exports.getPerguruanTinggiByJurusanSekolah = async (req, res) => {
   try {
     const { id_jurusan_sekolah } = req.params;
@@ -215,21 +248,43 @@ exports.getPerguruanTinggiByJurusanSekolah = async (req, res) => {
           model: RefMappingJurusanPtProdi,
           as: "mappingJurusan",
           attributes: [],
-          where: {
-            id_jurusan_sekolah,
-          },
+          where: { id_jurusan_sekolah },
         },
       ],
       group: ["RefPerguruanTinggi.id_pt"],
       order: [["id_pt", "ASC"]],
-      raw: true, // 🔥 hasil FLAT
+      raw: true,
     });
 
-    return successResponse(
-      res,
-      "Data perguruan tinggi berhasil dimuat",
-      perguruanTinggi,
-    );
+    // Cek apakah setiap PT punya prodi D1/D2 untuk jurusan sekolah ini
+    const ptIds = perguruanTinggi.map((pt) => pt.id_pt);
+
+    const prodiD1D2List = await RefProgramStudi.findAll({
+      attributes: ["id_pt"],
+      include: [
+        {
+          model: RefMappingJurusanPtProdi,
+          as: "mappingJurusan",
+          attributes: [],
+          where: { id_jurusan_sekolah },
+        },
+      ],
+      where: {
+        id_pt: { [Op.in]: ptIds },
+        jenjang: { [Op.in]: ["D1", "D2"] },
+      },
+      group: ["RefProgramStudi.id_pt"],
+      raw: true,
+    });
+
+    const ptWithD1D2 = new Set(prodiD1D2List.map((p) => p.id_pt));
+
+    const result = perguruanTinggi.map((pt) => ({
+      ...pt,
+      has_d1_d2: ptWithD1D2.has(pt.id_pt),
+    }));
+
+    return successResponse(res, "Data perguruan tinggi berhasil dimuat", result);
   } catch (error) {
     console.error(error);
     return errorResponse(res, "Internal Server Error");

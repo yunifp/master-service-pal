@@ -24,8 +24,8 @@ router.get("/persyaratan-khusus-aktif/jalur/:idJalur", getPersyaratanKhususAktif
 router.get("/jalur", getJalur);
 router.get("/jenjang-sekolah", getJenjangSekolah);
 router.get("/jurusan-sekolah/jenjang/:id_jenjang_sekolah", getJurusanSekolahByIdJenjang);
-router.get("/agama", getAgama);   // ✅ baru
-router.get("/suku", getSuku);     // ✅ baru
+router.get("/agama", getAgama);
+router.get("/suku", getSuku);
 router.get("/ref-npsn/search", searchRefNpsn);
 router.get("/flow-beasiswa", getFlowBeasiswa);
 

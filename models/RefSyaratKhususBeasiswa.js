@@ -37,11 +37,21 @@ const RefSyaratKhususBeasiswa = sequelize.define(
       allowNull: true,
       defaultValue: "Y",
     },
+    created_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    updated_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   },
   {
     tableName: "ref_syarat_khusus_beasiswa",
     timestamps: false,
   }
 );
+
+RefSyaratKhususBeasiswa.belongsTo(RefJalur, { foreignKey: 'id_jalur', targetKey: 'id', as: 'jalur_ref' });
 
 module.exports = RefSyaratKhususBeasiswa;

@@ -19,6 +19,16 @@ const RefNpsn = sequelize.define(
             allowNull: false,
             unique: true,
         },
+        jenis_sekolah: {
+            type: DataTypes.STRING(100),
+            allowNull: false,
+            unique: true,
+        },
+        id_jenjang: {
+            type: DataTypes.INTEGER(11),
+            allowNull: false,
+            unique: true,
+        },
     },
     {
         tableName: "ref_npsn",

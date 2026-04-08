@@ -28,6 +28,14 @@ const RefSyaratUmumBeasiswa = sequelize.define(
       allowNull: true,
       defaultValue: "Y",
     },
+    created_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    updated_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   },
   {
     tableName: "ref_syarat_umum_beasiswa",

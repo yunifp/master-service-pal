@@ -14,6 +14,14 @@ const RefJalur = sequelize.define(
       type: DataTypes.STRING(50),
       allowNull: true,
     },
+    created_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    updated_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   },
   {
     tableName: "ref_jalur",

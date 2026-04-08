@@ -77,6 +77,21 @@ const RefWilayah = sequelize.define(
       type: DataTypes.DOUBLE,
       allowNull: true,
     },
+    wilayah_3t: {
+      type: DataTypes.ENUM('0', '1'),
+      allowNull: true,
+      defaultValue: '0',
+    },
+    wilayah_perbatasan: {
+      type: DataTypes.ENUM('0', '1'),
+      allowNull: true,
+      defaultValue: '0',
+    },
+    wilayah_papua_nusateng: {
+      type: DataTypes.ENUM('0', '1'),
+      allowNull: true,
+      defaultValue: '0',
+    }
   },
   {
     tableName: "ref_wilayah",
