@@ -37,6 +37,18 @@ const RefSyaratKhususBeasiswa = sequelize.define(
       allowNull: true,
       defaultValue: "Y",
     },
+    // ---- TAMBAHAN KOLOM BARU MULAI DI SINI ----
+    is_kabkota: {
+      type: DataTypes.ENUM("Y", "N"),
+      allowNull: true,
+      defaultValue: "N",
+    },
+    is_prov: {
+      type: DataTypes.ENUM("Y", "N"),
+      allowNull: true,
+      defaultValue: "N",
+    },
+    // ---- TAMBAHAN KOLOM BARU SELESAI ----
     created_at: {
       type: DataTypes.DATE,
       allowNull: true,

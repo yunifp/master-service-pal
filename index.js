@@ -42,6 +42,7 @@ app.use(
 app.use("/api/master/sekolah", require("./features/sekolah/route"));
 
 app.use("/api/master/pks", require("./features/pks/route"));
+app.use("/api/master/npsn", require("./features/npsn/route"));
 
 app.use("/api/master/bank", require("./features/bank/route"));
 

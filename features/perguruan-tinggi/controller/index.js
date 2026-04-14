@@ -9,13 +9,11 @@ const { Op } = require("sequelize");
 
 exports.getPerguruanTinggiByPagination = async (req, res) => {
   try {
-    // Ambil parameter page dan limit dari query, default ke 1 dan 10
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const offset = (page - 1) * limit;
     const search = req.query.search || "";
 
-    // 1. PERBAIKAN: Gunakan Op.like untuk MySQL / MariaDB
     const whereCondition = search
       ? {
         [Op.or]: [
@@ -27,7 +25,6 @@ exports.getPerguruanTinggiByPagination = async (req, res) => {
       }
       : {};
 
-    // Ambil data role + total count
     const { count, rows } = await RefPerguruanTinggi.findAndCountAll({
       where: whereCondition,
       limit,
@@ -43,12 +40,10 @@ exports.getPerguruanTinggiByPagination = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    // 2. PERBAIKAN: Tambahkan parameter 'res' di depan string pesan error
     return errorResponse(res, "Internal Server Error");
   }
 };
 
-// Get semua perguruan tinggi
 exports.getPerguruanTinggi = async (req, res) => {
   try {
     const perguruanTinggi = await RefPerguruanTinggi.findAll({
@@ -65,7 +60,6 @@ exports.getPerguruanTinggi = async (req, res) => {
   }
 };
 
-// Get detail perguruan tinggi
 exports.getDetailPerguruanTinggi = async (req, res) => {
   try {
     const { id } = req.params;
@@ -78,12 +72,8 @@ exports.getDetailPerguruanTinggi = async (req, res) => {
       return errorResponse(res, "Data perguruan tinggi tidak ditemukan", 404);
     }
 
-    // ubah ke object biasa
     const data = perguruanTinggi.toJSON();
-
     data.logo_asli = data.logo_path;
-
-    // tambahkan logo_path full URL
     data.logo_path = data.logo_path
       ? getFileUrl(req, "logo_perguruan_tinggi", data.logo_path)
       : null;
@@ -107,70 +97,57 @@ exports.updatePerguruanTinggi = async (req, res) => {
       return errorResponse(res, "Perguruan tinggi tidak ditemukan", 404);
     }
 
+    // Mendukung camelCase dari frontend maupun snake_case
     const {
-      nama_pt,
+      namaPerguruanTinggi, nama_pt,
+      kodePerguruanTinggi, kode_pt,
       singkatan,
       alamat,
       jenis,
-      no_telepon_pt,
-      fax_pt,
-      no_telepon_pimpinan,
+      noTeleponPt, no_telepon_pt,
+      faxPt, fax_pt,
       kota,
-      kode_pos,
-      email,
-      website,
-      nama_pimpinan,
-      jabatan_pimpinan,
-      no_rekening,
-      nama_bank,
-      nama_penerima_transfer,
+      kodePos, kode_pos,
+      alamatEmail, email,
+      alamatWebsite, website,
+      namaDirektur, nama_pimpinan,
+      jabatanPimpinan, jabatan_pimpinan,
+      noTeleponPimpinan, no_telepon_pimpinan,
+      noRekeningLembaga, no_rekening,
+      namaBank, nama_bank,
+      namaPenerimaTransfer, nama_penerima_transfer,
       npwp,
-      status_aktif,
-      kode_pt,
-      nama_operator,
-      no_telepon_operator,
-      email_operator,
-      nama_verifikator,
-      no_telepon_verifikator,
-      email_verifikator,
+      statusAktif, status_aktif
     } = req.body;
 
     const payload = {
-      nama_pt,
-      kode_pt,
+      nama_pt: namaPerguruanTinggi || nama_pt,
+      kode_pt: kodePerguruanTinggi || kode_pt,
       singkatan,
       alamat,
       jenis,
-      no_telepon_pt,
-      fax_pt,
-      no_telepon_pimpinan,
+      no_telepon_pt: noTeleponPt || no_telepon_pt,
+      fax_pt: faxPt || fax_pt,
+      no_telepon_pimpinan: noTeleponPimpinan || no_telepon_pimpinan,
       kota,
-      kode_pos,
-      email,
-      website,
-      nama_pimpinan,
-      jabatan_pimpinan,
-      no_rekening,
-      nama_bank,
-      nama_penerima_transfer,
+      kode_pos: kodePos || kode_pos,
+      email: alamatEmail || email,
+      website: alamatWebsite || website,
+      nama_pimpinan: namaDirektur || nama_pimpinan,
+      jabatan_pimpinan: jabatanPimpinan || jabatan_pimpinan,
+      no_rekening: noRekeningLembaga || no_rekening,
+      nama_bank: namaBank || nama_bank,
+      nama_penerima_transfer: namaPenerimaTransfer || nama_penerima_transfer,
       npwp,
-      status_aktif,
-      nama_operator,
-      no_telepon_operator,
-      email_operator,
-      nama_verifikator,
-      no_telepon_verifikator,
-      email_verifikator,
+      status_aktif: statusAktif !== undefined ? statusAktif : status_aktif,
     };
 
-    // hapus field undefined biar ga overwrite data lama
     Object.keys(payload).forEach(
       (key) => payload[key] === undefined && delete payload[key],
     );
 
-    // jika upload logo baru
     if (req.file) {
-      payload.logo_path = req.file.filename; // atau req.file.path
+      payload.logo_path = req.file.filename; 
     }
 
     await perguruanTinggi.update(payload);
@@ -181,12 +158,9 @@ exports.updatePerguruanTinggi = async (req, res) => {
   }
 };
 
-// Get program studi by ID perguruan tinggi
 exports.getProgramStudiByPerguruanTinggi = async (req, res) => {
   try {
     const { idPerguruanTinggi } = req.params;
-
-    const { kondisi_buta_warna } = req.params;
 
     const programStudi = await RefProgramStudi.findAll({
       where: { id_pt: idPerguruanTinggi },
@@ -203,40 +177,6 @@ exports.getProgramStudiByPerguruanTinggi = async (req, res) => {
   }
 };
 
-// Get semua perguruan tinggi sesuai dengan jurusan sekolah
-// exports.getPerguruanTinggiByJurusanSekolah = async (req, res) => {
-//   try {
-//     const { id_jurusan_sekolah } = req.params;
-
-//     const perguruanTinggi = await RefPerguruanTinggi.findAll({
-//       attributes: ["id_pt", "nama_pt", "singkatan", "jenis", "kota"],
-//       include: [
-//         {
-//           model: RefMappingJurusanPtProdi,
-//           as: "mappingJurusan",
-//           attributes: [],
-//           where: {
-//             id_jurusan_sekolah,
-//           },
-//         },
-//       ],
-//       group: ["RefPerguruanTinggi.id_pt"],
-//       order: [["id_pt", "ASC"]],
-//       raw: true, // 🔥 hasil FLAT
-//     });
-
-//     return successResponse(
-//       res,
-//       "Data perguruan tinggi berhasil dimuat",
-//       perguruanTinggi,
-//     );
-//   } catch (error) {
-//     console.error(error);
-//     return errorResponse(res, "Internal Server Error");
-//   }
-// };
-
-// Get semua perguruan tinggi sesuai dengan jurusan sekolah
 exports.getPerguruanTinggiByJurusanSekolah = async (req, res) => {
   try {
     const { id_jurusan_sekolah } = req.params;
@@ -256,7 +196,6 @@ exports.getPerguruanTinggiByJurusanSekolah = async (req, res) => {
       raw: true,
     });
 
-    // Cek apakah setiap PT punya prodi D1/D2 untuk jurusan sekolah ini
     const ptIds = perguruanTinggi.map((pt) => pt.id_pt);
 
     const prodiD1D2List = await RefProgramStudi.findAll({
@@ -291,7 +230,6 @@ exports.getPerguruanTinggiByJurusanSekolah = async (req, res) => {
   }
 };
 
-// Get semua program studi sesuai dengan jurusan sekolah dan juga perguruan tinggi
 exports.getProgramStudiByJurusanSekolahDanPerguruanTinggi = async (
   req,
   res,
@@ -336,7 +274,6 @@ exports.getProgramStudiByJurusanSekolahDanPerguruanTinggi = async (
   }
 };
 
-// Get semua perguruan tinggi yang memiliki pengajuan perubahan
 exports.getPerguruanTinggiHasPerubahan = async (req, res) => {
   try {
     const perguruanTinggi = await RefPerguruanTinggi.findAll({
@@ -382,142 +319,47 @@ exports.updatePerguruanTinggiPengajuan = async (req, res) => {
     }
 
     const {
-      nama_pt,
+      namaPerguruanTinggi, nama_pt,
+      kodePerguruanTinggi, kode_pt,
       singkatan,
       alamat,
       jenis,
-      no_telepon_pt,
-      fax_pt,
-      no_telepon_pimpinan,
+      noTeleponPt, no_telepon_pt,
+      faxPt, fax_pt,
       kota,
-      kode_pos,
-      email,
-      website,
-      nama_pimpinan,
-      jabatan_pimpinan,
-      no_rekening,
-      nama_bank,
-      nama_penerima_transfer,
+      kodePos, kode_pos,
+      alamatEmail, email,
+      alamatWebsite, website,
+      namaDirektur, nama_pimpinan,
+      jabatanPimpinan, jabatan_pimpinan,
+      noTeleponPimpinan, no_telepon_pimpinan,
+      noRekeningLembaga, no_rekening,
+      namaBank, nama_bank,
+      namaPenerimaTransfer, nama_penerima_transfer,
       npwp,
-      status_aktif,
-      kode_pt,
-      nama_operator,
-      no_telepon_operator,
-      email_operator,
-      nama_verifikator,
-      no_telepon_verifikator,
-      email_verifikator,
-    } = req.body;
-
-    let logo_path;
-
-    if (req.file) {
-      logo_path = req.file.filename;
-    }
-
-    const payload = {
-      nama_pt,
-      kode_pt,
-      singkatan,
-      alamat,
-      jenis,
-      no_telepon_pt,
-      fax_pt,
-      no_telepon_pimpinan,
-      kota,
-      kode_pos,
-      email,
-      website,
-      nama_pimpinan,
-      jabatan_pimpinan,
-      no_rekening,
-      nama_bank,
-      nama_penerima_transfer,
-      npwp,
-      status_aktif,
-      nama_operator,
-      no_telepon_operator,
-      email_operator,
-      nama_verifikator,
-      no_telepon_verifikator,
-      email_verifikator,
-      has_pengajuan_perubahan: 0,
-    };
-
-    if (logo_path) {
-      payload.logo_path = logo_path;
-    }
-
-    // hapus field undefined biar ga overwrite data lama
-    Object.keys(payload).forEach(
-      (key) => payload[key] === undefined && delete payload[key],
-    );
-
-    await perguruanTinggi.update(payload);
-
-    return successResponse(res, "Perguruan tinggi berhasil diperbarui");
-  } catch (error) {
-    return errorResponse(res, "Internal Server Error");
-  }
-};
-
-
-exports.createPerguruanTinggi = async (req, res) => {
-  try {
-    const {
-      nama_pt,
-      kode_pt,
-      singkatan,
-      alamat,
-      jenis,
-      no_telepon_pt,
-      fax_pt,
-      no_telepon_pimpinan,
-      kota,
-      kode_pos,
-      email,
-      website,
-      nama_pimpinan,
-      jabatan_pimpinan,
-      no_rekening,
-      nama_bank,
-      nama_penerima_transfer,
-      npwp,
-      status_aktif,
-      nama_operator,
-      no_telepon_operator,
-      email_operator,
-      nama_verifikator,
-      no_telepon_verifikator,
-      email_verifikator,
+      statusAktif, status_aktif
     } = req.body;
 
     const payload = {
-      nama_pt,
-      kode_pt,
+      nama_pt: namaPerguruanTinggi || nama_pt,
+      kode_pt: kodePerguruanTinggi || kode_pt,
       singkatan,
       alamat,
       jenis,
-      no_telepon_pt,
-      fax_pt,
-      no_telepon_pimpinan,
+      no_telepon_pt: noTeleponPt || no_telepon_pt,
+      fax_pt: faxPt || fax_pt,
+      no_telepon_pimpinan: noTeleponPimpinan || no_telepon_pimpinan,
       kota,
-      kode_pos,
-      email,
-      website,
-      nama_pimpinan,
-      jabatan_pimpinan,
-      no_rekening,
-      nama_bank,
-      nama_penerima_transfer,
+      kode_pos: kodePos || kode_pos,
+      email: alamatEmail || email,
+      website: alamatWebsite || website,
+      nama_pimpinan: namaDirektur || nama_pimpinan,
+      jabatan_pimpinan: jabatanPimpinan || jabatan_pimpinan,
+      no_rekening: noRekeningLembaga || no_rekening,
+      nama_bank: namaBank || nama_bank,
+      nama_penerima_transfer: namaPenerimaTransfer || nama_penerima_transfer,
       npwp,
-      status_aktif,
-      nama_operator,
-      no_telepon_operator,
-      email_operator,
-      nama_verifikator,
-      no_telepon_verifikator,
-      email_verifikator,
+      status_aktif: statusAktif !== undefined ? statusAktif : status_aktif,
       has_pengajuan_perubahan: 0,
     };
 
@@ -529,15 +371,79 @@ exports.createPerguruanTinggi = async (req, res) => {
       payload.logo_path = req.file.filename;
     }
 
+    await perguruanTinggi.update(payload);
+
+    return successResponse(res, "Perguruan tinggi berhasil diperbarui");
+  } catch (error) {
+    return errorResponse(res, "Internal Server Error");
+  }
+};
+
+exports.createPerguruanTinggi = async (req, res) => {
+  try {
+    const {
+      namaPerguruanTinggi, nama_pt,
+      kodePerguruanTinggi, kode_pt,
+      singkatan,
+      alamat,
+      jenis,
+      noTeleponPt, no_telepon_pt,
+      faxPt, fax_pt,
+      kota,
+      kodePos, kode_pos,
+      alamatEmail, email,
+      alamatWebsite, website,
+      namaDirektur, nama_pimpinan,
+      jabatanPimpinan, jabatan_pimpinan,
+      noTeleponPimpinan, no_telepon_pimpinan,
+      noRekeningLembaga, no_rekening,
+      namaBank, nama_bank,
+      namaPenerimaTransfer, nama_penerima_transfer,
+      npwp,
+      statusAktif, status_aktif
+    } = req.body;
+
+    const payload = {
+      nama_pt: namaPerguruanTinggi || nama_pt,
+      kode_pt: kodePerguruanTinggi || kode_pt,
+      singkatan,
+      alamat,
+      jenis,
+      no_telepon_pt: noTeleponPt || no_telepon_pt,
+      fax_pt: faxPt || fax_pt,
+      no_telepon_pimpinan: noTeleponPimpinan || no_telepon_pimpinan,
+      kota,
+      kode_pos: kodePos || kode_pos,
+      email: alamatEmail || email,
+      website: alamatWebsite || website,
+      nama_pimpinan: namaDirektur || nama_pimpinan,
+      jabatan_pimpinan: jabatanPimpinan || jabatan_pimpinan,
+      no_rekening: noRekeningLembaga || no_rekening,
+      nama_bank: namaBank || nama_bank,
+      nama_penerima_transfer: namaPenerimaTransfer || nama_penerima_transfer,
+      npwp,
+      status_aktif: statusAktif !== undefined ? statusAktif : status_aktif,
+      has_pengajuan_perubahan: 0,
+    };
+
+    Object.keys(payload).forEach(
+      (key) => payload[key] === undefined && delete payload[key],
+    );
+
+    if (req.file) {
+      payload.logo_path = req.file.filename;
+    }
+
+    // Insert ke tabel Master
     const newPt = await RefPerguruanTinggi.create(payload);
 
+    // Kirim kembalian object `newPt` agar Frontend bisa mengambil property `id_pt`
     return successResponse(res, "Perguruan tinggi berhasil ditambahkan", newPt, 201);
   } catch (error) {
     console.error(error);
     return errorResponse(res, "Internal Server Error");
   }
 };
-
 
 exports.deletePerguruanTinggi = async (req, res) => {
   try {

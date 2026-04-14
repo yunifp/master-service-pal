@@ -2,6 +2,7 @@ const { Op } = require("sequelize");
 const { RefWilayah } = require("../../../models");
 const { successResponse, errorResponse } = require("../../../common/response");
 
+
 // ==========================================
 // 1. GET KABUPATEN/KOTA (Untuk Tabel Wilayah Khusus)
 // ==========================================
@@ -10,25 +11,53 @@ exports.getWilayahKhususPaginated = async (req, res) => {
     const { page = 1, limit = 10, search = "", kode_pro, is_khusus } = req.query;
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
-    // Filter hanya Kab/Kota
+    // Filter dasar: hanya ambil Kab/Kota
     const where = { tingkat_label: { [Op.in]: ["kabupaten", "kota"] } };
 
-    // Pencarian berdasarkan nama Kab/Kota
+    // --- LOGIKA PENCARIAN GLOBAL (KAB/KOTA & PROVINSI) ---
     if (search) {
-      where.nama_wilayah = { [Op.like]: `%${search}%` };
+      // 1. Cari dulu data Provinsi yang namanya mirip dengan kata kunci pencarian
+      const matchedProvinsi = await RefWilayah.findAll({
+        attributes: ["kode_pro"],
+        where: {
+          tingkat_label: "provinsi",
+          nama_wilayah: { [Op.like]: `%${search}%` }
+        },
+        raw: true
+      });
+
+      // Kumpulkan kode_pro dari provinsi yang cocok
+      const kodeProList = matchedProvinsi.map(p => p.kode_pro);
+
+      // 2. Terapkan OR: Cocokkan dengan nama Kab/Kota ATAU bagian dari Provinsi yang cocok
+      const searchConditions = [
+        { nama_wilayah: { [Op.like]: `%${search}%` } }
+      ];
+
+      // Jika ada provinsi yang cocok dengan pencarian, masukkan juga ke kondisi OR
+      if (kodeProList.length > 0) {
+        searchConditions.push({ kode_pro: { [Op.in]: kodeProList } });
+      }
+
+      where[Op.or] = searchConditions;
     }
 
-    // Filter berdasarkan Provinsi
+    // Filter berdasarkan Provinsi (jika user memilih dari dropdown filter terpisah)
     if (kode_pro) {
       where.kode_pro = kode_pro;
     }
 
     // Filter opsional: jika hanya ingin menampilkan yang sudah di-set 'Khusus'
     if (is_khusus === 'true') {
-      where[Op.or] = [
-        { wilayah_3t: '1' },
-        { wilayah_perbatasan: '1' },
-        { wilayah_papua_nusateng: '1' }
+      // Gunakan Op.and agar tidak bentrok dengan Op.or dari pencarian di atas
+      where[Op.and] = [
+        {
+          [Op.or]: [
+            { wilayah_3t: '1' },
+            { wilayah_perbatasan: '1' },
+            { wilayah_papua_nusateng: '1' }
+          ]
+        }
       ];
     }
 
@@ -54,12 +83,10 @@ exports.getWilayahKhususPaginated = async (req, res) => {
 
     // Format Data Response
     const result = rows.map(row => {
-      // Ingat, nilainya sekarang string '1' atau '0' dari DB
       const is3T = row.wilayah_3t === '1';
       const isPerbatasan = row.wilayah_perbatasan === '1';
       const isPapuaNusra = row.wilayah_papua_nusateng === '1';
       
-      // Logika Wilayah Khusus = Jika minimal 1 terceklis
       const isKhusus = is3T || isPerbatasan || isPapuaNusra;
 
       return {
@@ -68,17 +95,16 @@ exports.getWilayahKhususPaginated = async (req, res) => {
         nama_provinsi: provMap[row.kode_pro] || "-",
         kode_kab: row.kode_kab,
         nama_kabkota: row.nama_wilayah,
-        // Sesuaikan key balikan ke frontend dengan nama field baru
         wilayah_3t: is3T,
         wilayah_perbatasan: isPerbatasan,
         wilayah_papua_nusateng: isPapuaNusra,
-        is_khusus: isKhusus // Ini hanya field virtual untuk di Frontend
+        is_khusus: isKhusus
       };
     });
 
     return successResponse(res, "Berhasil memuat data Wilayah Khusus", {
       result,
-      total: count,
+      total: count, // Count ini sudah otomatis menyesuaikan hasil search
       current_page: parseInt(page),
       total_pages: Math.ceil(count / parseInt(limit))
     });
