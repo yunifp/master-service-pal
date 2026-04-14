@@ -129,7 +129,8 @@ exports.toggleMappingProdi = async (req, res) => {
           id_prodi,
           pt: ptData ? ptData.nama_pt : null,
           prodi: prodiData ? prodiData.nama_prodi : null,
-          jurusan_sekolah: jurusanData ? jurusanData.jurusan : null
+          jurusan_sekolah: jurusanData ? jurusanData.jurusan : null,
+          jenjang: prodiData ? prodiData.jenjang : null 
         }
       });
     } else {
@@ -157,6 +158,136 @@ exports.getAllJurusanSekolah = async (req, res) => {
       "Data semua jurusan sekolah berhasil dimuat",
       jurusanSekolah
     );
+  } catch (error) {
+    console.error(error);
+    return errorResponse(res, "Internal Server Error");
+  }
+};
+
+
+exports.getMappingProdiByPt = async (req, res) => {
+  try {
+    const { id_pt } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+    const search = req.query.search || "";
+
+    const whereCondition = { id_pt };
+    
+    if (search) {
+      whereCondition.nama_prodi = { [Op.like]: `%${search}%` };
+    }
+
+    // Ambil daftar Program Studi milik PT ini
+    const { count, rows } = await RefProgramStudi.findAndCountAll({
+      where: whereCondition,
+      limit,
+      offset,
+      order: [["nama_prodi", "ASC"]],
+      raw: true
+    });
+
+    if (rows.length === 0) {
+       return successResponse(res, "Data dimuat", { result: [], total: count, current_page: page, total_pages: 0 });
+    }
+
+    const prodiIds = rows.map(r => r.id_prodi);
+    
+    // Ambil data mapping terkait PT dan Prodi tersebut
+    const mappings = await RefMappingJurusanPtProdi.findAll({
+       where: {
+         id_pt,
+         id_prodi: { [Op.in]: prodiIds }
+       },
+       raw: true
+    });
+
+    // Kelompokkan mapping jurusan sekolah ke dalam object per id_prodi
+    const mappingByProdi = {};
+    mappings.forEach(m => {
+       if (!mappingByProdi[m.id_prodi]) {
+           mappingByProdi[m.id_prodi] = [];
+       }
+       mappingByProdi[m.id_prodi].push({
+           id_mapping: m.id_mapping,
+           id_jurusan_sekolah: m.id_jurusan_sekolah,
+           jurusan_sekolah: m.jurusan_sekolah
+       });
+    });
+
+    // Tempelkan data jurusan sekolah yang sudah di-map ke hasil prodi
+    const resultRows = rows.map(row => ({
+      ...row,
+      mapped_jurusan: mappingByProdi[row.id_prodi] || []
+    }));
+
+    return successResponse(res, "Data mapping prodi berdasarkan PT berhasil dimuat", {
+      result: resultRows,
+      total: count,
+      current_page: page,
+      total_pages: Math.ceil(count / limit),
+    });
+
+  } catch (error) {
+    console.error(error);
+    return errorResponse(res, "Internal Server Error");
+  }
+};
+
+// =======================================================
+// GET SEMUA JURUSAN SEKOLAH & STATUS MAPPINGNYA TERHADAP PRODI
+// =======================================================
+exports.getMappingJurusanByProdi = async (req, res) => {
+  try {
+    const { id_prodi } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+    const search = req.query.search || "";
+    
+    // Get all Jurusan Sekolah
+    const whereCondition = search ? {
+      jurusan: { [Op.like]: `%${search}%` }
+    } : {};
+
+    const { count, rows } = await RefJurusanSekolah.findAndCountAll({
+      where: whereCondition,
+      limit,
+      offset,
+      order: [["jurusan", "ASC"]],
+      raw: true
+    });
+
+    if (rows.length === 0) {
+       return successResponse(res, "Data dimuat", { result: [], total: count, current_page: page, total_pages: 0 });
+    }
+
+    const jurusanIds = rows.map(r => r.id_jurusan_sekolah);
+    
+    // Cek apakah jurusan-jurusan tersebut sudah di-map ke id_prodi ini
+    const mappings = await RefMappingJurusanPtProdi.findAll({
+       where: {
+         id_prodi,
+         id_jurusan_sekolah: { [Op.in]: jurusanIds }
+       },
+       raw: true
+    });
+    
+    const mappedJurusanIds = new Set(mappings.map(m => m.id_jurusan_sekolah));
+
+    const resultRows = rows.map(row => ({
+      ...row,
+      is_mapped: mappedJurusanIds.has(row.id_jurusan_sekolah) // true jika dicentang (sudah di-map)
+    }));
+
+    return successResponse(res, "Data mapping jurusan berdasarkan prodi berhasil dimuat", {
+      result: resultRows,
+      total: count,
+      current_page: page,
+      total_pages: Math.ceil(count / limit),
+    });
+
   } catch (error) {
     console.error(error);
     return errorResponse(res, "Internal Server Error");

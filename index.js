@@ -5,6 +5,7 @@ const morgan = require("morgan");
 const bodyParser = require("body-parser");
 const multerErrorHandler = require("./common/middleware/multerErrorHandler");
 const checkAuthorization = require("./common/middleware/auth_middleware");
+
 const app = express();
 app.set("trust proxy", true);
 app.use(
@@ -86,6 +87,12 @@ app.use(
   checkAuthorization,
   require("./features/penghasilan/route")
 );
+// app.use("/api/master/cms", checkAuthorization, require("./features/landingpage/route"));
+// Publik — khusus GET landing page (tanpa auth)
+app.use("/api/master/cms", require("./features/landingpage/route"));
+
+// HAPUS baris lama ini:
+// app.use("/api/master/cms", checkAuthorization, require("./features/landingpage/route"));
 app.use(multerErrorHandler);
 
 module.exports = app;

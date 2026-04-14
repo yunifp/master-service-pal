@@ -34,6 +34,10 @@ const RefMappingJurusanPtProdi = sequelize.define(
       type: DataTypes.STRING(255),
       allowNull: true,
     },
+    jenjang: {
+      type: DataTypes.STRING(10),
+      allowNull: true,
+    },
   },
   {
     tableName: "ref_mapping_jurusan_pt_prodi",

@@ -18,6 +18,9 @@ const RefNpsn = require("./RefNpsn");
 const RefJurusanSekolah = require("./RefJurusanSekolah");
 const RefPekerjaan = require("./RefPekerjaan");
 const RefPenghasilan = require("./RefPenghasilan");
+const CmsJalurPendaftaran = require("./CmsJalurPendaftaran");
+const CmsJalurSyarat = require("./CmsJalurSyarat");
+const CmsJalurDokumen = require("./CmsJalurDokumen");
 
 // Buat object models supaya gampang akses
 const models = {
@@ -40,7 +43,10 @@ const models = {
   RefNpsn,
   RefJurusanSekolah,
   RefPekerjaan,
-  RefPenghasilan
+  RefPenghasilan,
+  CmsJalurPendaftaran,
+  CmsJalurSyarat,
+  CmsJalurDokumen,
 };
 
 RefProgramStudi.belongsTo(RefPerguruanTinggi, {
@@ -96,6 +102,30 @@ RefMappingJurusanPtProdi.belongsTo(RefProgramStudi, {
   foreignKey: "id_prodi",
   targetKey: "id_prodi",
   as: "programStudi",
+});
+
+// ═══════════════════════════════════════════════
+// CMS JALUR PENDAFTARAN RELATIONS
+// ═══════════════════════════════════════════════
+
+CmsJalurPendaftaran.hasMany(CmsJalurSyarat, {
+  foreignKey: "id_jalur",
+  as: "syarat",
+});
+
+CmsJalurSyarat.belongsTo(CmsJalurPendaftaran, {
+  foreignKey: "id_jalur",
+  as: "jalur",
+});
+
+CmsJalurPendaftaran.hasMany(CmsJalurDokumen, {
+  foreignKey: "id_jalur",
+  as: "dokumen",
+});
+
+CmsJalurDokumen.belongsTo(CmsJalurPendaftaran, {
+  foreignKey: "id_jalur",
+  as: "jalur",
 });
 
 module.exports = models;
