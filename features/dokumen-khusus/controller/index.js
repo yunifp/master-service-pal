@@ -106,3 +106,35 @@ exports.deleteDokumenKhusus = async (req, res) => {
     return errorResponse(res, "Internal Server Error");
   }
 };
+
+exports.getRefDokumenKhusus = async (req, res) => {
+  try {
+    const { is_kabkota, is_prov } = req.query;
+
+    const where = {
+      status_aktif: "Y",
+    };
+
+    if (is_kabkota) where.is_kabkota = is_kabkota;
+    if (is_prov) where.is_prov = is_prov;
+
+    const rows = await RefSyaratKhususBeasiswa.findAll({
+      where,
+      order: [["id", "ASC"]],
+      include: [
+        {
+          model: RefJalur,
+          as: "jalur_ref",
+          attributes: ["id", "jalur"],
+        },
+      ],
+    });
+
+    return successResponse(res, "Berhasil memuat referensi Dokumen Khusus", {
+      result: rows,
+    });
+  } catch (error) {
+    console.error("Error getRefDokumenKhusus:", error);
+    return errorResponse(res, "Internal Server Error");
+  }
+};

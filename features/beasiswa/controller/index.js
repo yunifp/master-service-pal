@@ -12,7 +12,6 @@ const { successResponse, errorResponse } = require("../../../common/response");
 const RefJurusanSekolah = require("../../../models/RefJurusanSekolah");
 const { Op } = require("sequelize");
 
-// Get semua beasiswa
 exports.getAllBeasiswa = async (req, res) => {
   try {
     const beasiswa = await RefBeasiswa.findAll();
@@ -23,7 +22,6 @@ exports.getAllBeasiswa = async (req, res) => {
   }
 };
 
-// Get beasiswa yang sedang aktif
 exports.getBeasiswaAktif = async (req, res) => {
   try {
     const beasiswa = await RefBeasiswa.findOne({
