@@ -87,6 +87,11 @@ app.use(
   checkAuthorization,
   require("./features/penghasilan/route")
 );
+app.use(
+  "/api/master/nik-cekal",
+  checkAuthorization,
+  require("./features/nik-cekal/route")
+);
 // app.use("/api/master/cms", checkAuthorization, require("./features/landingpage/route"));
 // Publik — khusus GET landing page (tanpa auth)
 app.use("/api/master/cms", require("./features/landingpage/route"));

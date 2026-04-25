@@ -21,6 +21,7 @@ const RefPenghasilan = require("./RefPenghasilan");
 const CmsJalurPendaftaran = require("./CmsJalurPendaftaran");
 const CmsJalurSyarat = require("./CmsJalurSyarat");
 const CmsJalurDokumen = require("./CmsJalurDokumen");
+const RefNikCekal = require("./RefNikCekal");
 
 // Buat object models supaya gampang akses
 const models = {
@@ -47,6 +48,7 @@ const models = {
   CmsJalurPendaftaran,
   CmsJalurSyarat,
   CmsJalurDokumen,
+  RefNikCekal
 };
 
 RefProgramStudi.belongsTo(RefPerguruanTinggi, {

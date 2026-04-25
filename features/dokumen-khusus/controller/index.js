@@ -16,11 +16,11 @@ exports.getDokumenKhususPaginated = async (req, res) => {
       where,
       limit: parseInt(limit),
       offset: offset,
-      order: [["id", "DESC"]], // Urutkan data terbaru di atas
+      order: [["id", "DESC"]],
       include: [
         {
           model: RefJalur,
-          as: 'jalur_ref', // Sesuai relasi di model lo
+          as: 'jalur_ref',
           attributes: ['id', 'jalur'],
         }
       ]
@@ -40,8 +40,7 @@ exports.getDokumenKhususPaginated = async (req, res) => {
 
 exports.createDokumenKhusus = async (req, res) => {
   try {
-    // Tambahkan is_kabkota dan is_prov
-    const { id_jalur, persyaratan, status_aktif, valid_type, is_required, is_kabkota, is_prov } = req.body;
+    const { id_jalur, persyaratan, status_aktif, valid_type, is_required, is_kabkota, is_prov, size } = req.body;
 
     if (!persyaratan) return errorResponse(res, "Nama Dokumen wajib diisi", 400);
     if (!id_jalur) return errorResponse(res, "Jalur wajib dipilih", 400);
@@ -52,8 +51,9 @@ exports.createDokumenKhusus = async (req, res) => {
       status_aktif: status_aktif || "Y",
       valid_type,
       is_required: is_required || "Y",
-      is_kabkota: is_kabkota || "N", // Default N jika tidak dikirim
-      is_prov: is_prov || "N",       // Default N jika tidak dikirim
+      is_kabkota: is_kabkota || "N",
+      is_prov: is_prov || "N",
+      size: size !== undefined ? size : null,
       created_at: new Date(),
     });
 
@@ -67,8 +67,7 @@ exports.createDokumenKhusus = async (req, res) => {
 exports.updateDokumenKhusus = async (req, res) => {
   try {
     const { id } = req.params;
-    // Tambahkan is_kabkota dan is_prov
-    const { id_jalur, persyaratan, status_aktif, valid_type, is_required, is_kabkota, is_prov } = req.body;
+    const { id_jalur, persyaratan, status_aktif, valid_type, is_required, is_kabkota, is_prov, size } = req.body;
 
     const dokumen = await RefSyaratKhususBeasiswa.findByPk(id);
     if (!dokumen) return errorResponse(res, "Data Dokumen Khusus tidak ditemukan", 404);
@@ -79,8 +78,9 @@ exports.updateDokumenKhusus = async (req, res) => {
       status_aktif: status_aktif || dokumen.status_aktif,
       valid_type: valid_type !== undefined ? valid_type : dokumen.valid_type,
       is_required: is_required || dokumen.is_required,
-      is_kabkota: is_kabkota || dokumen.is_kabkota, // Update nilai jika ada
-      is_prov: is_prov || dokumen.is_prov,          // Update nilai jika ada
+      is_kabkota: is_kabkota || dokumen.is_kabkota,
+      is_prov: is_prov || dokumen.is_prov,
+      size: size !== undefined ? size : dokumen.size,
       updated_at: new Date(),
     });
 

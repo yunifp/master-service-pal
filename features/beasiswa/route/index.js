@@ -13,7 +13,9 @@ const {
   getAgama,
   getSuku,
   searchRefNpsn,
-  getFlowBeasiswa
+  getFlowBeasiswa,
+  checkNikCekal,
+  submitCekal
 } = require("../controller");
 
 router.get("/all", getAllBeasiswa);
@@ -28,5 +30,7 @@ router.get("/agama", getAgama);
 router.get("/suku", getSuku);
 router.get("/ref-npsn/search", searchRefNpsn);
 router.get("/flow-beasiswa", getFlowBeasiswa);
+router.get("/check-nik-cekal/:nik", checkNikCekal);
+router.post("/submit-cekal", submitCekal);
 
 module.exports = router;

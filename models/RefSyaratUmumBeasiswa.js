@@ -39,6 +39,10 @@ const RefSyaratUmumBeasiswa = sequelize.define(
       allowNull: true,
       defaultValue: "N",
     },
+    size: {
+      type: DataTypes.STRING(6),
+      allowNull: true,
+    },
     // ---- TAMBAHAN KOLOM BARU SELESAI ----
     created_at: {
       type: DataTypes.DATE,

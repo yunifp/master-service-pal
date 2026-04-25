@@ -32,8 +32,7 @@ exports.getDokumenUmumPaginated = async (req, res) => {
 
 exports.createDokumenUmum = async (req, res) => {
   try {
-    // Tambahkan is_kabkota dan is_prov
-    const { persyaratan, status_aktif, valid_type, is_required, is_kabkota, is_prov } = req.body;
+    const { persyaratan, status_aktif, valid_type, is_required, is_kabkota, is_prov, size } = req.body;
 
     if (!persyaratan) return errorResponse(res, "Nama Dokumen wajib diisi", 400);
 
@@ -42,8 +41,9 @@ exports.createDokumenUmum = async (req, res) => {
       status_aktif: status_aktif || "Y",
       valid_type,
       is_required: is_required || "Y",
-      is_kabkota: is_kabkota || "N", // Default N
-      is_prov: is_prov || "N",       // Default N
+      is_kabkota: is_kabkota || "N", 
+      is_prov: is_prov || "N",       
+      size: size !== undefined ? size : null,
       created_at: new Date(),
     });
 
@@ -56,8 +56,7 @@ exports.createDokumenUmum = async (req, res) => {
 exports.updateDokumenUmum = async (req, res) => {
   try {
     const { id } = req.params;
-    // Tambahkan is_kabkota dan is_prov
-    const { persyaratan, status_aktif, valid_type, is_required, is_kabkota, is_prov } = req.body;
+    const { persyaratan, status_aktif, valid_type, is_required, is_kabkota, is_prov, size } = req.body;
 
     const dokumen = await RefSyaratUmumBeasiswa.findByPk(id);
     if (!dokumen) return errorResponse(res, "Data Dokumen Umum tidak ditemukan", 404);
@@ -67,8 +66,9 @@ exports.updateDokumenUmum = async (req, res) => {
       status_aktif: status_aktif || dokumen.status_aktif,
       valid_type: valid_type !== undefined ? valid_type : dokumen.valid_type,
       is_required: is_required || dokumen.is_required,
-      is_kabkota: is_kabkota || dokumen.is_kabkota, // Update nilai baru
-      is_prov: is_prov || dokumen.is_prov,          // Update nilai baru
+      is_kabkota: is_kabkota || dokumen.is_kabkota, 
+      is_prov: is_prov || dokumen.is_prov,          
+      size: size !== undefined ? size : dokumen.size,
       updated_at: new Date(),
     });
 

@@ -6,7 +6,8 @@ const {
   RefJenjangSekolah,
   RefAgama,
   RefSuku,
-  RefNpsn
+  RefNpsn,
+  RefNikCekal
 } = require("../../../models");
 const { successResponse, errorResponse } = require("../../../common/response");
 const RefJurusanSekolah = require("../../../models/RefJurusanSekolah");
@@ -221,6 +222,56 @@ exports.getFlowBeasiswa = async (req, res) => {
 
     return successResponse(res, "Data flow beasiswa berhasil dimuat", flow);
   } catch (error) {
+    return errorResponse(res, "Internal Server Error");
+  }
+};
+// Cek apakah NIK terdaftar di ref_nik_cekal
+exports.checkNikCekal = async (req, res) => {
+  try {
+    const { nik } = req.params;
+
+    if (!nik || nik.length !== 16) {
+      return failResponse(res, "NIK tidak valid");
+    }
+
+    // const { RefNikCekal } = require("../../../models");
+
+    const cekal = await RefNikCekal.findOne({
+      where: { nik },
+      attributes: ["id", "nik", "nama", "keterangan"],
+    });
+
+    return successResponse(res, "Pengecekan NIK cekal selesai", {
+      is_cekal: !!cekal,
+      data: cekal ?? null,
+    });
+  } catch (error) {
+    console.error("Error checkNikCekal:", error);
+    return errorResponse(res, "Internal Server Error");
+  }
+};
+
+exports.submitCekal = async (req, res) => {
+  try {
+    const { nik, nama, keterangan } = req.body;
+
+    if (!nik || nik.length !== 16) {
+      return failResponse(res, "NIK tidak valid");
+    }
+
+    const cekal = await RefNikCekal.create({
+      nik,
+      nama,
+      keterangan,
+    });
+
+    return successResponse(res, "Blacklist NIK Berhasil", {
+      status: 200,
+      status_nama: "Berhasil Diblacklist",
+      data: cekal,
+    });
+  } catch (error) {
+    console.error("Error checkNikCekal:", error);
     return errorResponse(res, "Internal Server Error");
   }
 };
