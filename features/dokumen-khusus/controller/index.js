@@ -8,8 +8,29 @@ exports.getDokumenKhususPaginated = async (req, res) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
 
     const where = {};
+    
     if (search) {
-      where.persyaratan = { [Op.like]: `%${search}%` };
+      const searchLower = search.toLowerCase();
+      let statusSearch = search;
+      
+      // Menerjemahkan ketikan "YA" / "TIDAK" menjadi "Y" / "N" untuk kolom berjenis ENUM
+      if (searchLower === 'ya') statusSearch = 'Y';
+      if (searchLower === 'tidak') statusSearch = 'N';
+
+      where[Op.or] = [
+        { persyaratan: { [Op.like]: `%${search}%` } },
+        { valid_type: { [Op.like]: `%${search}%` } },
+        { '$jalur_ref.jalur$': { [Op.like]: `%${search}%` } },
+        { status_aktif: { [Op.like]: `%${statusSearch}%` } },
+        { is_required: { [Op.like]: `%${statusSearch}%` } },
+        { is_kabkota: { [Op.like]: `%${statusSearch}%` } },
+        { is_prov: { [Op.like]: `%${statusSearch}%` } }
+      ];
+
+      // Jika yang diketik adalah angka, ikut sertakan dalam pencarian Max Size
+      if (!isNaN(search) && search.trim() !== "") {
+        where[Op.or].push({ size: search });
+      }
     }
 
     const { count, rows } = await RefSyaratKhususBeasiswa.findAndCountAll({
@@ -17,6 +38,7 @@ exports.getDokumenKhususPaginated = async (req, res) => {
       limit: parseInt(limit),
       offset: offset,
       order: [["id", "DESC"]],
+      subQuery: false, // Wajib false agar relasi JOIN ($jalur_ref$) tidak error saat dipaginasi
       include: [
         {
           model: RefJalur,
@@ -40,7 +62,7 @@ exports.getDokumenKhususPaginated = async (req, res) => {
 
 exports.createDokumenKhusus = async (req, res) => {
   try {
-    const { id_jalur, persyaratan, status_aktif, valid_type, is_required, is_kabkota, is_prov, size } = req.body;
+    const { id_jalur, persyaratan, status_aktif, valid_type, is_required, is_kabkota, is_prov, size, nama_file_unduh  } = req.body;
 
     if (!persyaratan) return errorResponse(res, "Nama Dokumen wajib diisi", 400);
     if (!id_jalur) return errorResponse(res, "Jalur wajib dipilih", 400);
@@ -54,6 +76,7 @@ exports.createDokumenKhusus = async (req, res) => {
       is_kabkota: is_kabkota || "N",
       is_prov: is_prov || "N",
       size: size !== undefined ? size : null,
+      nama_file_unduh: nama_file_unduh !== undefined ? nama_file_unduh : null,  
       created_at: new Date(),
     });
 
@@ -67,7 +90,7 @@ exports.createDokumenKhusus = async (req, res) => {
 exports.updateDokumenKhusus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { id_jalur, persyaratan, status_aktif, valid_type, is_required, is_kabkota, is_prov, size } = req.body;
+    const { id_jalur, persyaratan, status_aktif, valid_type, is_required, is_kabkota, is_prov, size, nama_file_unduh } = req.body;
 
     const dokumen = await RefSyaratKhususBeasiswa.findByPk(id);
     if (!dokumen) return errorResponse(res, "Data Dokumen Khusus tidak ditemukan", 404);
@@ -81,6 +104,7 @@ exports.updateDokumenKhusus = async (req, res) => {
       is_kabkota: is_kabkota || dokumen.is_kabkota,
       is_prov: is_prov || dokumen.is_prov,
       size: size !== undefined ? size : dokumen.size,
+      nama_file_unduh: nama_file_unduh !== undefined ? nama_file_unduh : dokumen.nama_file_unduh,   
       updated_at: new Date(),
     });
 

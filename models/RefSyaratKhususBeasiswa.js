@@ -52,6 +52,10 @@ const RefSyaratKhususBeasiswa = sequelize.define(
       type: DataTypes.STRING(6),
       allowNull: true
     },
+    nama_file_unduh: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
     // ---- TAMBAHAN KOLOM BARU SELESAI ----
     created_at: {
       type: DataTypes.DATE,

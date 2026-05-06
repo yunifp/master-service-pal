@@ -6,7 +6,11 @@ const {
   createNikCekal,
   updateNikCekal,
   deleteNikCekal,
+  exportNikCekalExcel // ✅ Pastikan ini di-import
 } = require("../controller");
+
+// ✅ Route Export wajib di atas /:id
+router.get("/export", exportNikCekalExcel);
 
 // Ambil list NIK Cekal (mendukung parameter ?page=1&limit=10&search=)
 router.get("/paginate", getNikCekalPaginated);

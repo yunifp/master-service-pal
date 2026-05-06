@@ -32,7 +32,7 @@ exports.getDokumenUmumPaginated = async (req, res) => {
 
 exports.createDokumenUmum = async (req, res) => {
   try {
-    const { persyaratan, status_aktif, valid_type, is_required, is_kabkota, is_prov, size } = req.body;
+    const { persyaratan, status_aktif, valid_type, is_required, is_kabkota, is_prov, size, nama_file_unduh } = req.body;
 
     if (!persyaratan) return errorResponse(res, "Nama Dokumen wajib diisi", 400);
 
@@ -44,6 +44,7 @@ exports.createDokumenUmum = async (req, res) => {
       is_kabkota: is_kabkota || "N", 
       is_prov: is_prov || "N",       
       size: size !== undefined ? size : null,
+      nama_file_unduh: nama_file_unduh !== undefined ? nama_file_unduh : null,
       created_at: new Date(),
     });
 
@@ -56,7 +57,7 @@ exports.createDokumenUmum = async (req, res) => {
 exports.updateDokumenUmum = async (req, res) => {
   try {
     const { id } = req.params;
-    const { persyaratan, status_aktif, valid_type, is_required, is_kabkota, is_prov, size } = req.body;
+    const { persyaratan, status_aktif, valid_type, is_required, is_kabkota, is_prov, size, nama_file_unduh } = req.body;
 
     const dokumen = await RefSyaratUmumBeasiswa.findByPk(id);
     if (!dokumen) return errorResponse(res, "Data Dokumen Umum tidak ditemukan", 404);
@@ -69,6 +70,7 @@ exports.updateDokumenUmum = async (req, res) => {
       is_kabkota: is_kabkota || dokumen.is_kabkota, 
       is_prov: is_prov || dokumen.is_prov,          
       size: size !== undefined ? size : dokumen.size,
+      nama_file_unduh: nama_file_unduh !== undefined ? nama_file_unduh : dokumen.nama_file_unduh, 
       updated_at: new Date(),
     });
 

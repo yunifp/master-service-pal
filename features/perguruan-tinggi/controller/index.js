@@ -14,13 +14,24 @@ exports.getPerguruanTinggiByPagination = async (req, res) => {
     const offset = (page - 1) * limit;
     const search = req.query.search || "";
 
-    const whereCondition = search
+    const searchClean = search.trim();
+    const searchLower = searchClean.toLowerCase();
+    let statusSearch = searchClean;
+
+    // Translasi cerdas untuk status aktif
+    if (searchLower === 'aktif' || searchLower === 'ya') statusSearch = 'Y';
+    if (searchLower === 'tidak aktif' || searchLower === 'tidak') statusSearch = 'N';
+
+    // Pencarian disempurnakan ke seluruh konteks tabel
+    const whereCondition = searchClean
       ? {
         [Op.or]: [
-          { nama_pt: { [Op.like]: `%${search}%` } },
-          { singkatan: { [Op.like]: `%${search}%` } },
-          { kota: { [Op.like]: `%${search}%` } },
-          { kode_pt: { [Op.like]: `%${search}%` } }
+          { nama_pt: { [Op.like]: `%${searchClean}%` } },
+          { singkatan: { [Op.like]: `%${searchClean}%` } },
+          { kode_pt: { [Op.like]: `%${searchClean}%` } },
+          { jenis: { [Op.like]: `%${searchClean}%` } },
+          { kota: { [Op.like]: `%${searchClean}%` } }, // Hapus baris ini jika tidak ingin kota ikut dicari
+          { status_aktif: { [Op.like]: `%${statusSearch}%` } }
         ],
       }
       : {};
