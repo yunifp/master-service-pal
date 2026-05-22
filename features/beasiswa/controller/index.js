@@ -275,3 +275,31 @@ exports.submitCekal = async (req, res) => {
     return errorResponse(res, "Internal Server Error");
   }
 };
+
+// Update tanggal mulai dan tanggal selesai beasiswa
+exports.updateTanggalBeasiswa = async (req, res) => {
+  try {
+    const { idBeasiswa } = req.params;
+    const { tanggal_mulai, tanggal_selesai } = req.body;
+
+    // Impor failResponse secara lokal jika belum ada di bagian atas file
+    const { failResponse } = require("../../../common/response");
+
+    if (!tanggal_mulai || !tanggal_selesai) {
+      return failResponse(res, "Tanggal mulai dan tanggal selesai harus diisi");
+    }
+
+    await RefBeasiswa.update(
+      { 
+        tanggal_mulai, 
+        tanggal_selesai 
+      },
+      { where: { id: idBeasiswa } }
+    );
+
+    return successResponse(res, "Tanggal beasiswa berhasil diperbarui");
+  } catch (error) {
+    console.error("Error updateTanggalBeasiswa:", error);
+    return errorResponse(res, "Internal Server Error");
+  }
+};
