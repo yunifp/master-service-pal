@@ -24,6 +24,11 @@ const CmsJalurDokumen = sequelize.define(
             allowNull: false,
             defaultValue: 0,
         },
+        template_link: {
+            type: DataTypes.STRING(500),
+            allowNull: true,
+            comment: "Link template unduhan khusus untuk dokumen ini",
+        },
     },
     {
         tableName: "cms_jalur_dokumen",

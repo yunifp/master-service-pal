@@ -1,5 +1,4 @@
 const { Op } = require("sequelize");
-// const { CmsHero } = require("../../../models");
 const CmsHero = require("../../../models/CmsHero");
 const CmsJalurPendaftaran = require("../../../models/CmsJalurPendaftaran");
 const CmsJalurSyarat = require("../../../models/CmsJalurSyarat");
@@ -10,7 +9,6 @@ const { successResponse, errorResponse } = require("../../../common/response");
 
 /**
  * GET /cms/hero
- * Ambil data hero yang aktif (untuk landing page publik)
  */
 exports.getHeroAktif = async (req, res) => {
   try {
@@ -29,7 +27,7 @@ exports.getHeroAktif = async (req, res) => {
 };
 
 /**
- * GET /cms/hero/all  (CMS admin — semua data)
+ * GET /cms/hero/all
  */
 exports.getAllHero = async (req, res) => {
   try {
@@ -64,29 +62,22 @@ exports.getHeroById = async (req, res) => {
 exports.createHero = async (req, res) => {
   try {
     const {
-      judul,
-      subjudul,
-      bg_image_url,
-      label_cta,
-      url_cta,
-      is_active,
-      created_by,
+      judul, subjudul, bg_image_url, bg_image_url_2, bg_image_url_3,
+      label_cta, url_cta, is_active, created_by,
     } = req.body;
 
     if (!judul) return errorResponse(res, "Judul wajib diisi", 400);
 
-    // Jika is_active = 1, nonaktifkan semua hero lain agar hanya satu yang aktif
     if (is_active == 1) {
-      await CmsHero.update(
-        { is_active: 0 },
-        { where: { is_active: 1 } }
-      );
+      await CmsHero.update({ is_active: 0 }, { where: { is_active: 1 } });
     }
 
     const newHero = await CmsHero.create({
       judul,
       subjudul: subjudul || null,
       bg_image_url: bg_image_url || null,
+      bg_image_url_2: bg_image_url_2 || null, // Tambahan
+      bg_image_url_3: bg_image_url_3 || null, // Tambahan
       label_cta: label_cta || "Daftar Sekarang",
       url_cta: url_cta || "/daftar-penerima-beasiswa",
       is_active: is_active !== undefined ? is_active : 1,
@@ -101,37 +92,27 @@ exports.createHero = async (req, res) => {
   }
 };
 
-/**
- * PUT /cms/hero/:id
- */
 exports.updateHero = async (req, res) => {
   try {
     const { id } = req.params;
     const {
-      judul,
-      subjudul,
-      bg_image_url,
-      label_cta,
-      url_cta,
-      is_active,
-      updated_by,
+      judul, subjudul, bg_image_url, bg_image_url_2, bg_image_url_3,
+      label_cta, url_cta, is_active, updated_by,
     } = req.body;
 
     const hero = await CmsHero.findByPk(id);
     if (!hero) return errorResponse(res, "Data hero tidak ditemukan", 404);
 
-    // Jika di-set aktif, nonaktifkan semua yang lain
     if (is_active == 1) {
-      await CmsHero.update(
-        { is_active: 0 },
-        { where: { is_active: 1 } }
-      );
+      await CmsHero.update({ is_active: 0 }, { where: { is_active: 1 } });
     }
 
     await hero.update({
       judul: judul !== undefined ? judul : hero.judul,
       subjudul: subjudul !== undefined ? subjudul : hero.subjudul,
       bg_image_url: bg_image_url !== undefined ? bg_image_url : hero.bg_image_url,
+      bg_image_url_2: bg_image_url_2 !== undefined ? bg_image_url_2 : hero.bg_image_url_2, // Tambahan
+      bg_image_url_3: bg_image_url_3 !== undefined ? bg_image_url_3 : hero.bg_image_url_3, // Tambahan
       label_cta: label_cta !== undefined ? label_cta : hero.label_cta,
       url_cta: url_cta !== undefined ? url_cta : hero.url_cta,
       is_active: is_active !== undefined ? is_active : hero.is_active,
@@ -145,7 +126,6 @@ exports.updateHero = async (req, res) => {
     return errorResponse(res, "Internal Server Error");
   }
 };
-
 /**
  * DELETE /cms/hero/:id
  */
@@ -167,7 +147,6 @@ exports.deleteHero = async (req, res) => {
 
 /**
  * PATCH /cms/hero/:id/toggle-active
- * Toggle is_active (aktif/nonaktif) — jika diaktifkan, yang lain otomatis nonaktif
  */
 exports.toggleActiveHero = async (req, res) => {
   try {
@@ -178,7 +157,6 @@ exports.toggleActiveHero = async (req, res) => {
 
     const newStatus = hero.is_active === 1 ? 0 : 1;
 
-    // Jika mau diaktifkan, matikan semua dulu
     if (newStatus === 1) {
       await CmsHero.update({ is_active: 0 }, { where: { is_active: 1 } });
     }
@@ -201,13 +179,13 @@ const includeDetail = [
   {
     model: CmsJalurSyarat,
     as: "syarat",
-    attributes: ["id", "syarat", "urutan"],
+    attributes: ["id", "syarat", "urutan", "template_link"],
     order: [["urutan", "ASC"]],
   },
   {
     model: CmsJalurDokumen,
     as: "dokumen",
-    attributes: ["id", "dokumen", "urutan"],
+    attributes: ["id", "dokumen", "urutan", "template_link"],
     order: [["urutan", "ASC"]],
   },
 ];
@@ -218,7 +196,6 @@ const includeDetail = [
 
 /**
  * GET /cms/jalur
- * Semua jalur aktif beserta syarat & dokumen (untuk landing page publik)
  */
 exports.getJalurAktif = async (req, res) => {
   try {
@@ -237,7 +214,6 @@ exports.getJalurAktif = async (req, res) => {
 
 /**
  * GET /cms/jalur/all
- * Semua jalur (aktif + nonaktif) — untuk CMS admin
  */
 exports.getAllJalur = async (req, res) => {
   try {
@@ -263,7 +239,6 @@ exports.getAllJalur = async (req, res) => {
 
 /**
  * GET /cms/jalur/:id
- * Detail jalur by id (termasuk syarat & dokumen)
  */
 exports.getJalurById = async (req, res) => {
   try {
@@ -284,14 +259,6 @@ exports.getJalurById = async (req, res) => {
 
 /**
  * POST /cms/jalur
- * Buat jalur baru (beserta syarat & dokumen sekaligus)
- *
- * Body:
- * {
- *   judul, deskripsi, gambar_url, urutan, is_active, created_by,
- *   syarat: [{ syarat, urutan }],
- *   dokumen: [{ dokumen, urutan }]
- * }
  */
 exports.createJalur = async (req, res) => {
   try {
@@ -318,29 +285,28 @@ exports.createJalur = async (req, res) => {
       created_at: new Date(),
     });
 
-    // Insert syarat
     if (syarat.length > 0) {
       const syaratRows = syarat.map((s, i) => ({
         id_jalur: newJalur.id,
         syarat: s.syarat,
+        template_link: s.template_link || null,
         urutan: s.urutan !== undefined ? s.urutan : i + 1,
         created_at: new Date(),
       }));
       await CmsJalurSyarat.bulkCreate(syaratRows);
     }
 
-    // Insert dokumen
     if (dokumen.length > 0) {
       const dokumenRows = dokumen.map((d, i) => ({
         id_jalur: newJalur.id,
         dokumen: d.dokumen,
+        template_link: d.template_link || null,
         urutan: d.urutan !== undefined ? d.urutan : i + 1,
         created_at: new Date(),
       }));
       await CmsJalurDokumen.bulkCreate(dokumenRows);
     }
 
-    // Return dengan relasi lengkap
     const result = await CmsJalurPendaftaran.findByPk(newJalur.id, {
       include: includeDetail,
     });
@@ -354,16 +320,6 @@ exports.createJalur = async (req, res) => {
 
 /**
  * PUT /cms/jalur/:id
- * Update jalur + replace syarat & dokumen sekaligus
- *
- * Body:
- * {
- *   judul, deskripsi, gambar_url, urutan, is_active, updated_by,
- *   syarat: [{ syarat, urutan }],
- *   dokumen: [{ dokumen, urutan }]
- * }
- *
- * Catatan: syarat & dokumen akan di-replace seluruhnya (delete lama, insert baru)
  */
 exports.updateJalur = async (req, res) => {
   try {
@@ -382,7 +338,6 @@ exports.updateJalur = async (req, res) => {
     const jalur = await CmsJalurPendaftaran.findByPk(id);
     if (!jalur) return errorResponse(res, "Jalur tidak ditemukan", 404);
 
-    // Update header jalur
     await jalur.update({
       judul: judul !== undefined ? judul : jalur.judul,
       deskripsi: deskripsi !== undefined ? deskripsi : jalur.deskripsi,
@@ -393,13 +348,13 @@ exports.updateJalur = async (req, res) => {
       updated_at: new Date(),
     });
 
-    // Replace syarat jika dikirim
     if (syarat !== undefined) {
       await CmsJalurSyarat.destroy({ where: { id_jalur: id } });
       if (syarat.length > 0) {
         const syaratRows = syarat.map((s, i) => ({
           id_jalur: Number(id),
           syarat: s.syarat,
+          template_link: s.template_link || null,
           urutan: s.urutan !== undefined ? s.urutan : i + 1,
           created_at: new Date(),
         }));
@@ -407,13 +362,13 @@ exports.updateJalur = async (req, res) => {
       }
     }
 
-    // Replace dokumen jika dikirim
     if (dokumen !== undefined) {
       await CmsJalurDokumen.destroy({ where: { id_jalur: id } });
       if (dokumen.length > 0) {
         const dokumenRows = dokumen.map((d, i) => ({
           id_jalur: Number(id),
           dokumen: d.dokumen,
+          template_link: d.template_link || null,
           urutan: d.urutan !== undefined ? d.urutan : i + 1,
           created_at: new Date(),
         }));
@@ -430,7 +385,6 @@ exports.updateJalur = async (req, res) => {
 
 /**
  * DELETE /cms/jalur/:id
- * Hapus jalur (syarat & dokumen terhapus otomatis via ON DELETE CASCADE)
  */
 exports.deleteJalur = async (req, res) => {
   try {
@@ -473,24 +427,19 @@ exports.toggleActiveJalur = async (req, res) => {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// SYARAT — endpoint terpisah (opsional, untuk edit item individual)
+// SYARAT
 // ═══════════════════════════════════════════════════════════════════════════════
 
-/**
- * POST /cms/jalur/:id/syarat
- * Tambah satu syarat ke jalur tertentu
- */
 exports.addSyarat = async (req, res) => {
   try {
     const { id } = req.params;
-    const { syarat, urutan } = req.body;
+    const { syarat, urutan, template_link } = req.body;
 
     if (!syarat) return errorResponse(res, "Syarat wajib diisi", 400);
 
     const jalur = await CmsJalurPendaftaran.findByPk(id);
     if (!jalur) return errorResponse(res, "Jalur tidak ditemukan", 404);
 
-    // Auto urutan: ambil max urutan yang ada + 1
     const maxUrutan = await CmsJalurSyarat.max("urutan", {
       where: { id_jalur: id },
     });
@@ -498,6 +447,7 @@ exports.addSyarat = async (req, res) => {
     const newSyarat = await CmsJalurSyarat.create({
       id_jalur: Number(id),
       syarat,
+      template_link: template_link || null,
       urutan: urutan !== undefined ? urutan : (maxUrutan || 0) + 1,
       created_at: new Date(),
     });
@@ -509,20 +459,17 @@ exports.addSyarat = async (req, res) => {
   }
 };
 
-/**
- * PUT /cms/jalur/:id/syarat/:syaratId
- * Update satu syarat
- */
 exports.updateSyarat = async (req, res) => {
   try {
     const { syaratId } = req.params;
-    const { syarat, urutan } = req.body;
+    const { syarat, urutan, template_link } = req.body;
 
     const data = await CmsJalurSyarat.findByPk(syaratId);
     if (!data) return errorResponse(res, "Syarat tidak ditemukan", 404);
 
     await data.update({
       syarat: syarat !== undefined ? syarat : data.syarat,
+      template_link: template_link !== undefined ? template_link : data.template_link,
       urutan: urutan !== undefined ? urutan : data.urutan,
       updated_at: new Date(),
     });
@@ -534,9 +481,6 @@ exports.updateSyarat = async (req, res) => {
   }
 };
 
-/**
- * DELETE /cms/jalur/:id/syarat/:syaratId
- */
 exports.deleteSyarat = async (req, res) => {
   try {
     const { syaratId } = req.params;
@@ -553,17 +497,13 @@ exports.deleteSyarat = async (req, res) => {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// DOKUMEN — endpoint terpisah (opsional, untuk edit item individual)
+// DOKUMEN
 // ═══════════════════════════════════════════════════════════════════════════════
 
-/**
- * POST /cms/jalur/:id/dokumen
- * Tambah satu dokumen ke jalur tertentu
- */
 exports.addDokumen = async (req, res) => {
   try {
     const { id } = req.params;
-    const { dokumen, urutan } = req.body;
+    const { dokumen, urutan, template_link } = req.body;
 
     if (!dokumen) return errorResponse(res, "Dokumen wajib diisi", 400);
 
@@ -577,35 +517,29 @@ exports.addDokumen = async (req, res) => {
     const newDokumen = await CmsJalurDokumen.create({
       id_jalur: Number(id),
       dokumen,
+      template_link: template_link || null,
       urutan: urutan !== undefined ? urutan : (maxUrutan || 0) + 1,
       created_at: new Date(),
     });
 
-    return successResponse(
-      res,
-      "Berhasil menambahkan dokumen",
-      newDokumen,
-      201
-    );
+    return successResponse(res, "Berhasil menambahkan dokumen", newDokumen, 201);
   } catch (error) {
     console.error("addDokumen:", error);
     return errorResponse(res, "Internal Server Error");
   }
 };
 
-/**
- * PUT /cms/jalur/:id/dokumen/:dokumenId
- */
 exports.updateDokumen = async (req, res) => {
   try {
     const { dokumenId } = req.params;
-    const { dokumen, urutan } = req.body;
+    const { dokumen, urutan, template_link } = req.body;
 
     const data = await CmsJalurDokumen.findByPk(dokumenId);
     if (!data) return errorResponse(res, "Dokumen tidak ditemukan", 404);
 
     await data.update({
       dokumen: dokumen !== undefined ? dokumen : data.dokumen,
+      template_link: template_link !== undefined ? template_link : data.template_link,
       urutan: urutan !== undefined ? urutan : data.urutan,
       updated_at: new Date(),
     });
@@ -617,9 +551,6 @@ exports.updateDokumen = async (req, res) => {
   }
 };
 
-/**
- * DELETE /cms/jalur/:id/dokumen/:dokumenId
- */
 exports.deleteDokumen = async (req, res) => {
   try {
     const { dokumenId } = req.params;
@@ -635,10 +566,10 @@ exports.deleteDokumen = async (req, res) => {
   }
 };
 
-/**
- * GET /cms/kontak
- * Ambil kontak yang aktif (untuk landing page publik)
- */
+// ═══════════════════════════════════════════════════════════════════════════════
+// KONTAK & TENTANG (Sisa dari controller bawaan)
+// ═══════════════════════════════════════════════════════════════════════════════
+
 exports.getKontakAktif = async (req, res) => {
   try {
     const kontak = await CmsKontak.findOne({
@@ -655,10 +586,6 @@ exports.getKontakAktif = async (req, res) => {
   }
 };
 
-/**
- * GET /cms/kontak/all
- * Semua data kontak — untuk CMS admin
- */
 exports.getAllKontak = async (req, res) => {
   try {
     const rows = await CmsKontak.findAll({ order: [["id", "DESC"]] });
@@ -669,9 +596,6 @@ exports.getAllKontak = async (req, res) => {
   }
 };
 
-/**
- * GET /cms/kontak/:id
- */
 exports.getKontakById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -686,29 +610,13 @@ exports.getKontakById = async (req, res) => {
   }
 };
 
-/**
- * POST /cms/kontak
- * Body: { judul_section, nama_instansi, alamat, telepon, email, whatsapp,
- *         jam_operasional, maps_embed_url, maps_lat, maps_lng, is_active, created_by }
- */
 exports.createKontak = async (req, res) => {
   try {
     const {
-      judul_section,
-      nama_instansi,
-      alamat,
-      telepon,
-      email,
-      whatsapp,
-      jam_operasional,
-      maps_embed_url,
-      maps_lat,
-      maps_lng,
-      is_active,
-      created_by,
+      judul_section, nama_instansi, alamat, telepon, email, whatsapp,
+      jam_operasional, maps_embed_url, maps_lat, maps_lng, is_active, created_by,
     } = req.body;
 
-    // Jika is_active = 1, nonaktifkan semua kontak lain
     if (is_active == 1) {
       await CmsKontak.update({ is_active: 0 }, { where: { is_active: 1 } });
     }
@@ -735,36 +643,19 @@ exports.createKontak = async (req, res) => {
   }
 };
 
-/**
- * PUT /cms/kontak/:id
- */
 exports.updateKontak = async (req, res) => {
   try {
     const { id } = req.params;
     const {
-      judul_section,
-      nama_instansi,
-      alamat,
-      telepon,
-      email,
-      whatsapp,
-      jam_operasional,
-      maps_embed_url,
-      maps_lat,
-      maps_lng,
-      is_active,
-      updated_by,
+      judul_section, nama_instansi, alamat, telepon, email, whatsapp,
+      jam_operasional, maps_embed_url, maps_lat, maps_lng, is_active, updated_by,
     } = req.body;
 
     const kontak = await CmsKontak.findByPk(id);
     if (!kontak) return errorResponse(res, "Data kontak tidak ditemukan", 404);
 
-    // Jika di-set aktif, nonaktifkan semua yang lain
     if (is_active == 1) {
-      await CmsKontak.update(
-        { is_active: 0 },
-        { where: { is_active: 1 } }
-      );
+      await CmsKontak.update({ is_active: 0 }, { where: { is_active: 1 } });
     }
 
     await kontak.update({
@@ -789,9 +680,6 @@ exports.updateKontak = async (req, res) => {
   }
 };
 
-/**
- * DELETE /cms/kontak/:id
- */
 exports.deleteKontak = async (req, res) => {
   try {
     const { id } = req.params;
@@ -808,10 +696,6 @@ exports.deleteKontak = async (req, res) => {
   }
 };
 
-/**
- * PATCH /cms/kontak/:id/toggle-active
- * Toggle is_active — jika diaktifkan, yang lain otomatis nonaktif
- */
 exports.toggleActiveKontak = async (req, res) => {
   try {
     const { id } = req.params;
@@ -837,10 +721,7 @@ exports.toggleActiveKontak = async (req, res) => {
     return errorResponse(res, "Internal Server Error");
   }
 };
-/**
- * GET /cms/tentang
- * Ambil data tentang yang aktif (untuk landing page publik)
- */
+
 exports.getCmsTentangAktif = async (req, res) => {
   try {
     const tentang = await CmsTentangBeasiswa.findOne({
@@ -857,10 +738,6 @@ exports.getCmsTentangAktif = async (req, res) => {
   }
 };
 
-/**
- * GET /cms/tentang/all
- * Semua data tentang — untuk CMS admin
- */
 exports.getAllCmsTentang = async (req, res) => {
   try {
     const rows = await CmsTentangBeasiswa.findAll({
@@ -873,9 +750,6 @@ exports.getAllCmsTentang = async (req, res) => {
   }
 };
 
-/**
- * GET /cms/tentang/:id
- */
 exports.getCmsTentangById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -890,21 +764,12 @@ exports.getCmsTentangById = async (req, res) => {
   }
 };
 
-/**
- * POST /cms/tentang
- * Body: { judul_section, deskripsi, gambar_url, is_active, created_by }
- */
 exports.createCmsTentang = async (req, res) => {
   try {
     const {
-      judul_section,
-      deskripsi,
-      gambar_url,
-      is_active,
-      created_by,
+      judul_section, deskripsi, gambar_url, is_active, created_by,
     } = req.body;
 
-    // Jika is_active = 1, nonaktifkan semua yang lain
     if (is_active == 1) {
       await CmsTentangBeasiswa.update(
         { is_active: 0 },
@@ -932,25 +797,16 @@ exports.createCmsTentang = async (req, res) => {
   }
 };
 
-/**
- * PUT /cms/tentang/:id
- * Body: { judul_section, deskripsi, gambar_url, is_active, updated_by }
- */
 exports.updateCmsTentang = async (req, res) => {
   try {
     const { id } = req.params;
     const {
-      judul_section,
-      deskripsi,
-      gambar_url,
-      is_active,
-      updated_by,
+      judul_section, deskripsi, gambar_url, is_active, updated_by,
     } = req.body;
 
     const tentang = await CmsTentangBeasiswa.findByPk(id);
     if (!tentang) return errorResponse(res, "Data tentang tidak ditemukan", 404);
 
-    // Jika di-set aktif, nonaktifkan semua yang lain dulu
     if (is_active == 1) {
       await CmsTentangBeasiswa.update(
         { is_active: 0 },
@@ -973,9 +829,6 @@ exports.updateCmsTentang = async (req, res) => {
   }
 };
 
-/**
- * DELETE /cms/tentang/:id
- */
 exports.deleteCmsTentang = async (req, res) => {
   try {
     const { id } = req.params;
@@ -992,10 +845,6 @@ exports.deleteCmsTentang = async (req, res) => {
   }
 };
 
-/**
- * PATCH /cms/tentang/:id/toggle-active
- * Toggle is_active — jika diaktifkan, yang lain otomatis nonaktif
- */
 exports.toggleActiveCmsTentang = async (req, res) => {
   try {
     const { id } = req.params;

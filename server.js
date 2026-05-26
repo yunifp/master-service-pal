@@ -1,3 +1,5 @@
+require('dotenv').config({ path: './config.env' }); // <-- Tambahkan baris ini
+
 const app = require("./index");
 const { testConnection } = require("./core/db_config");
 

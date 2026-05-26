@@ -23,7 +23,17 @@ const CmsHero = sequelize.define(
     bg_image_url: {
       type: DataTypes.STRING(500),
       allowNull: true,
-      comment: "Path atau URL gambar background",
+      comment: "Path atau URL gambar background 1",
+    },
+    bg_image_url_2: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+      comment: "Path atau URL gambar background 2",
+    },
+    bg_image_url_3: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+      comment: "Path atau URL gambar background 3",
     },
     label_cta: {
       type: DataTypes.STRING(100),
