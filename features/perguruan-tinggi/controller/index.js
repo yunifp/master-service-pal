@@ -108,7 +108,6 @@ exports.updatePerguruanTinggi = async (req, res) => {
       return errorResponse(res, "Perguruan tinggi tidak ditemukan", 404);
     }
 
-    // Mendukung camelCase dari frontend maupun snake_case
     const {
       namaPerguruanTinggi, nama_pt,
       kodePerguruanTinggi, kode_pt,
@@ -121,13 +120,6 @@ exports.updatePerguruanTinggi = async (req, res) => {
       kodePos, kode_pos,
       alamatEmail, email,
       alamatWebsite, website,
-      namaDirektur, nama_pimpinan,
-      jabatanPimpinan, jabatan_pimpinan,
-      noTeleponPimpinan, no_telepon_pimpinan,
-      noRekeningLembaga, no_rekening,
-      namaBank, nama_bank,
-      namaPenerimaTransfer, nama_penerima_transfer,
-      npwp,
       statusAktif, status_aktif
     } = req.body;
 
@@ -139,17 +131,10 @@ exports.updatePerguruanTinggi = async (req, res) => {
       jenis,
       no_telepon_pt: noTeleponPt || no_telepon_pt,
       fax_pt: faxPt || fax_pt,
-      no_telepon_pimpinan: noTeleponPimpinan || no_telepon_pimpinan,
       kota,
       kode_pos: kodePos || kode_pos,
       email: alamatEmail || email,
       website: alamatWebsite || website,
-      nama_pimpinan: namaDirektur || nama_pimpinan,
-      jabatan_pimpinan: jabatanPimpinan || jabatan_pimpinan,
-      no_rekening: noRekeningLembaga || no_rekening,
-      nama_bank: namaBank || nama_bank,
-      nama_penerima_transfer: namaPenerimaTransfer || nama_penerima_transfer,
-      npwp,
       status_aktif: statusAktif !== undefined ? statusAktif : status_aktif,
     };
 
@@ -165,6 +150,7 @@ exports.updatePerguruanTinggi = async (req, res) => {
 
     return successResponse(res, "Perguruan tinggi berhasil diperbarui");
   } catch (error) {
+    console.error("Error saat Update PT:", error);
     return errorResponse(res, "Internal Server Error");
   }
 };
@@ -341,13 +327,6 @@ exports.updatePerguruanTinggiPengajuan = async (req, res) => {
       kodePos, kode_pos,
       alamatEmail, email,
       alamatWebsite, website,
-      namaDirektur, nama_pimpinan,
-      jabatanPimpinan, jabatan_pimpinan,
-      noTeleponPimpinan, no_telepon_pimpinan,
-      noRekeningLembaga, no_rekening,
-      namaBank, nama_bank,
-      namaPenerimaTransfer, nama_penerima_transfer,
-      npwp,
       statusAktif, status_aktif
     } = req.body;
 
@@ -359,17 +338,10 @@ exports.updatePerguruanTinggiPengajuan = async (req, res) => {
       jenis,
       no_telepon_pt: noTeleponPt || no_telepon_pt,
       fax_pt: faxPt || fax_pt,
-      no_telepon_pimpinan: noTeleponPimpinan || no_telepon_pimpinan,
       kota,
       kode_pos: kodePos || kode_pos,
       email: alamatEmail || email,
       website: alamatWebsite || website,
-      nama_pimpinan: namaDirektur || nama_pimpinan,
-      jabatan_pimpinan: jabatanPimpinan || jabatan_pimpinan,
-      no_rekening: noRekeningLembaga || no_rekening,
-      nama_bank: namaBank || nama_bank,
-      nama_penerima_transfer: namaPenerimaTransfer || nama_penerima_transfer,
-      npwp,
       status_aktif: statusAktif !== undefined ? statusAktif : status_aktif,
       has_pengajuan_perubahan: 0,
     };
@@ -386,6 +358,7 @@ exports.updatePerguruanTinggiPengajuan = async (req, res) => {
 
     return successResponse(res, "Perguruan tinggi berhasil diperbarui");
   } catch (error) {
+    console.error("Error saat Update Pengajuan PT:", error);
     return errorResponse(res, "Internal Server Error");
   }
 };
@@ -404,13 +377,6 @@ exports.createPerguruanTinggi = async (req, res) => {
       kodePos, kode_pos,
       alamatEmail, email,
       alamatWebsite, website,
-      namaDirektur, nama_pimpinan,
-      jabatanPimpinan, jabatan_pimpinan,
-      noTeleponPimpinan, no_telepon_pimpinan,
-      noRekeningLembaga, no_rekening,
-      namaBank, nama_bank,
-      namaPenerimaTransfer, nama_penerima_transfer,
-      npwp,
       statusAktif, status_aktif
     } = req.body;
 
@@ -422,17 +388,10 @@ exports.createPerguruanTinggi = async (req, res) => {
       jenis,
       no_telepon_pt: noTeleponPt || no_telepon_pt,
       fax_pt: faxPt || fax_pt,
-      no_telepon_pimpinan: noTeleponPimpinan || no_telepon_pimpinan,
       kota,
       kode_pos: kodePos || kode_pos,
       email: alamatEmail || email,
       website: alamatWebsite || website,
-      nama_pimpinan: namaDirektur || nama_pimpinan,
-      jabatan_pimpinan: jabatanPimpinan || jabatan_pimpinan,
-      no_rekening: noRekeningLembaga || no_rekening,
-      nama_bank: namaBank || nama_bank,
-      nama_penerima_transfer: namaPenerimaTransfer || nama_penerima_transfer,
-      npwp,
       status_aktif: statusAktif !== undefined ? statusAktif : status_aktif,
       has_pengajuan_perubahan: 0,
     };
@@ -445,13 +404,11 @@ exports.createPerguruanTinggi = async (req, res) => {
       payload.logo_path = req.file.filename;
     }
 
-    // Insert ke tabel Master
     const newPt = await RefPerguruanTinggi.create(payload);
 
-    // Kirim kembalian object `newPt` agar Frontend bisa mengambil property `id_pt`
     return successResponse(res, "Perguruan tinggi berhasil ditambahkan", newPt, 201);
   } catch (error) {
-    console.error(error);
+    console.error("Error saat Create PT:", error);
     return errorResponse(res, "Internal Server Error");
   }
 };
