@@ -303,3 +303,39 @@ exports.updateTanggalBeasiswa = async (req, res) => {
     return errorResponse(res, "Internal Server Error");
   }
 };
+
+
+exports.updatePengaturanBeasiswa = async (req, res) => {
+  try {
+    const { idBeasiswa } = req.params;
+    
+    // Ambil batas_tanggal_lahir dari request body
+    const { tanggal_mulai, tanggal_selesai, batas_tanggal_lahir } = req.body;
+
+    const { failResponse, successResponse, errorResponse } = require("../../../common/response");
+
+    if (!tanggal_mulai || !tanggal_selesai) {
+      return failResponse(res, "Tanggal mulai dan tanggal selesai harus diisi");
+    }
+
+    const updateData = {
+      tanggal_mulai,
+      tanggal_selesai
+    };
+
+    // Validasi jika batas_tanggal_lahir dikirimkan
+    if (batas_tanggal_lahir) {
+      updateData.batas_tanggal_lahir = batas_tanggal_lahir;
+    }
+
+    await RefBeasiswa.update(
+      updateData,
+      { where: { id: idBeasiswa } }
+    );
+
+    return successResponse(res, "Pengaturan pendaftaran beasiswa berhasil diperbarui");
+  } catch (error) {
+    console.error("Error updatePengaturanBeasiswa:", error);
+    return errorResponse(res, "Internal Server Error");
+  }
+};

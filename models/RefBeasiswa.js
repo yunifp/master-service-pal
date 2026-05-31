@@ -35,6 +35,11 @@ const RefBeasiswa = sequelize.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    batas_tanggal_lahir: {
+      type: DataTypes.DATE, 
+      allowNull: true,
+      comment: "Batas maksimal tanggal lahir pendaftar untuk validasi usia"
+    }
   },
   {
     tableName: "ref_beasiswa",

@@ -16,7 +16,8 @@ const {
   getFlowBeasiswa,
   checkNikCekal,
   submitCekal,
-  updateTanggalBeasiswa
+  updateTanggalBeasiswa,
+  updatePengaturanBeasiswa,
 } = require("../controller");
 
 router.get("/all", getAllBeasiswa);
@@ -34,5 +35,6 @@ router.get("/flow-beasiswa", getFlowBeasiswa);
 router.get("/check-nik-cekal/:nik", checkNikCekal);
 router.post("/submit-cekal", submitCekal);
 router.put("/set-tanggal/:idBeasiswa", updateTanggalBeasiswa);
+router.put("/set-pengaturan/:idBeasiswa", updatePengaturanBeasiswa);
 
 module.exports = router;

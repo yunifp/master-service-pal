@@ -6,6 +6,7 @@ const CmsJalurDokumen = require("../../../models/CmsJalurDokumen");
 const CmsKontak = require("../../../models/CmsKontak");
 const CmsTentangBeasiswa = require("../../../models/CmsTentangBeasiswa");
 const { successResponse, errorResponse } = require("../../../common/response");
+const { getFileUrl } = require("../../../common/middleware/upload_middleware");
 
 /**
  * GET /cms/hero
@@ -62,11 +63,21 @@ exports.getHeroById = async (req, res) => {
 exports.createHero = async (req, res) => {
   try {
     const {
-      judul, subjudul, bg_image_url, bg_image_url_2, bg_image_url_3,
-      label_cta, url_cta, is_active, created_by,
+      judul, subjudul, label_cta, url_cta, is_active, created_by,
     } = req.body;
 
     if (!judul) return errorResponse(res, "Judul wajib diisi", 400);
+
+    // Prioritaskan dari file upload, jika tidak ada, ambil dari teks url
+    let final_bg_1 = req.body.bg_image_url || null;
+    let final_bg_2 = req.body.bg_image_url_2 || null;
+    let final_bg_3 = req.body.bg_image_url_3 || null;
+
+    if (req.files) {
+      if (req.files.bg_image_url) final_bg_1 = getFileUrl(req, "cms_hero", req.files.bg_image_url[0].filename);
+      if (req.files.bg_image_url_2) final_bg_2 = getFileUrl(req, "cms_hero", req.files.bg_image_url_2[0].filename);
+      if (req.files.bg_image_url_3) final_bg_3 = getFileUrl(req, "cms_hero", req.files.bg_image_url_3[0].filename);
+    }
 
     if (is_active == 1) {
       await CmsHero.update({ is_active: 0 }, { where: { is_active: 1 } });
@@ -75,9 +86,9 @@ exports.createHero = async (req, res) => {
     const newHero = await CmsHero.create({
       judul,
       subjudul: subjudul || null,
-      bg_image_url: bg_image_url || null,
-      bg_image_url_2: bg_image_url_2 || null, // Tambahan
-      bg_image_url_3: bg_image_url_3 || null, // Tambahan
+      bg_image_url: final_bg_1,
+      bg_image_url_2: final_bg_2,
+      bg_image_url_3: final_bg_3,
       label_cta: label_cta || "Daftar Sekarang",
       url_cta: url_cta || "/daftar-penerima-beasiswa",
       is_active: is_active !== undefined ? is_active : 1,
@@ -96,12 +107,21 @@ exports.updateHero = async (req, res) => {
   try {
     const { id } = req.params;
     const {
-      judul, subjudul, bg_image_url, bg_image_url_2, bg_image_url_3,
-      label_cta, url_cta, is_active, updated_by,
+      judul, subjudul, label_cta, url_cta, is_active, updated_by,
     } = req.body;
 
     const hero = await CmsHero.findByPk(id);
     if (!hero) return errorResponse(res, "Data hero tidak ditemukan", 404);
+
+    let final_bg_1 = req.body.bg_image_url !== undefined ? req.body.bg_image_url : hero.bg_image_url;
+    let final_bg_2 = req.body.bg_image_url_2 !== undefined ? req.body.bg_image_url_2 : hero.bg_image_url_2;
+    let final_bg_3 = req.body.bg_image_url_3 !== undefined ? req.body.bg_image_url_3 : hero.bg_image_url_3;
+
+    if (req.files) {
+      if (req.files.bg_image_url) final_bg_1 = getFileUrl(req, "cms_hero", req.files.bg_image_url[0].filename);
+      if (req.files.bg_image_url_2) final_bg_2 = getFileUrl(req, "cms_hero", req.files.bg_image_url_2[0].filename);
+      if (req.files.bg_image_url_3) final_bg_3 = getFileUrl(req, "cms_hero", req.files.bg_image_url_3[0].filename);
+    }
 
     if (is_active == 1) {
       await CmsHero.update({ is_active: 0 }, { where: { is_active: 1 } });
@@ -110,9 +130,9 @@ exports.updateHero = async (req, res) => {
     await hero.update({
       judul: judul !== undefined ? judul : hero.judul,
       subjudul: subjudul !== undefined ? subjudul : hero.subjudul,
-      bg_image_url: bg_image_url !== undefined ? bg_image_url : hero.bg_image_url,
-      bg_image_url_2: bg_image_url_2 !== undefined ? bg_image_url_2 : hero.bg_image_url_2, // Tambahan
-      bg_image_url_3: bg_image_url_3 !== undefined ? bg_image_url_3 : hero.bg_image_url_3, // Tambahan
+      bg_image_url: final_bg_1,
+      bg_image_url_2: final_bg_2,
+      bg_image_url_3: final_bg_3,
       label_cta: label_cta !== undefined ? label_cta : hero.label_cta,
       url_cta: url_cta !== undefined ? url_cta : hero.url_cta,
       is_active: is_active !== undefined ? is_active : hero.is_active,
@@ -126,6 +146,7 @@ exports.updateHero = async (req, res) => {
     return errorResponse(res, "Internal Server Error");
   }
 };
+
 /**
  * DELETE /cms/hero/:id
  */
@@ -265,20 +286,31 @@ exports.createJalur = async (req, res) => {
     const {
       judul,
       deskripsi,
-      gambar_url,
       urutan,
       is_active,
       created_by,
-      syarat = [],
-      dokumen = [],
     } = req.body;
+    
+    let { syarat, dokumen } = req.body;
+    
+    // Parse JSON jika request dalam format form-data
+    if (typeof syarat === 'string') syarat = JSON.parse(syarat);
+    if (typeof dokumen === 'string') dokumen = JSON.parse(dokumen);
+    
+    syarat = syarat || [];
+    dokumen = dokumen || [];
 
     if (!judul) return errorResponse(res, "Judul jalur wajib diisi", 400);
+
+    let final_gambar = req.body.gambar_url || null;
+    if (req.file) {
+      final_gambar = getFileUrl(req, "cms_jalur", req.file.filename);
+    }
 
     const newJalur = await CmsJalurPendaftaran.create({
       judul,
       deskripsi: deskripsi || null,
-      gambar_url: gambar_url || null,
+      gambar_url: final_gambar,
       urutan: urutan || 0,
       is_active: is_active !== undefined ? is_active : 1,
       created_by: created_by || null,
@@ -327,21 +359,28 @@ exports.updateJalur = async (req, res) => {
     const {
       judul,
       deskripsi,
-      gambar_url,
       urutan,
       is_active,
       updated_by,
-      syarat,
-      dokumen,
     } = req.body;
+    
+    let { syarat, dokumen } = req.body;
+    
+    if (typeof syarat === 'string') syarat = JSON.parse(syarat);
+    if (typeof dokumen === 'string') dokumen = JSON.parse(dokumen);
 
     const jalur = await CmsJalurPendaftaran.findByPk(id);
     if (!jalur) return errorResponse(res, "Jalur tidak ditemukan", 404);
 
+    let final_gambar = req.body.gambar_url !== undefined ? req.body.gambar_url : jalur.gambar_url;
+    if (req.file) {
+      final_gambar = getFileUrl(req, "cms_jalur", req.file.filename);
+    }
+
     await jalur.update({
       judul: judul !== undefined ? judul : jalur.judul,
       deskripsi: deskripsi !== undefined ? deskripsi : jalur.deskripsi,
-      gambar_url: gambar_url !== undefined ? gambar_url : jalur.gambar_url,
+      gambar_url: final_gambar,
       urutan: urutan !== undefined ? urutan : jalur.urutan,
       is_active: is_active !== undefined ? is_active : jalur.is_active,
       updated_by: updated_by || null,
@@ -567,7 +606,7 @@ exports.deleteDokumen = async (req, res) => {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// KONTAK & TENTANG (Sisa dari controller bawaan)
+// KONTAK
 // ═══════════════════════════════════════════════════════════════════════════════
 
 exports.getKontakAktif = async (req, res) => {
@@ -722,6 +761,10 @@ exports.toggleActiveKontak = async (req, res) => {
   }
 };
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// TENTANG BEASISWA
+// ═══════════════════════════════════════════════════════════════════════════════
+
 exports.getCmsTentangAktif = async (req, res) => {
   try {
     const tentang = await CmsTentangBeasiswa.findOne({
@@ -767,8 +810,13 @@ exports.getCmsTentangById = async (req, res) => {
 exports.createCmsTentang = async (req, res) => {
   try {
     const {
-      judul_section, deskripsi, gambar_url, is_active, created_by,
+      judul_section, deskripsi, is_active, created_by,
     } = req.body;
+
+    let final_gambar = req.body.gambar_url || null;
+    if (req.file) {
+      final_gambar = getFileUrl(req, "cms_tentang", req.file.filename);
+    }
 
     if (is_active == 1) {
       await CmsTentangBeasiswa.update(
@@ -780,7 +828,7 @@ exports.createCmsTentang = async (req, res) => {
     const newTentang = await CmsTentangBeasiswa.create({
       judul_section: judul_section || "Tentang Beasiswa",
       deskripsi: deskripsi || null,
-      gambar_url: gambar_url || null,
+      gambar_url: final_gambar,
       is_active: is_active !== undefined ? is_active : 1,
       created_by: created_by || null,
     });
@@ -801,11 +849,16 @@ exports.updateCmsTentang = async (req, res) => {
   try {
     const { id } = req.params;
     const {
-      judul_section, deskripsi, gambar_url, is_active, updated_by,
+      judul_section, deskripsi, is_active, updated_by,
     } = req.body;
 
     const tentang = await CmsTentangBeasiswa.findByPk(id);
     if (!tentang) return errorResponse(res, "Data tentang tidak ditemukan", 404);
+
+    let final_gambar = req.body.gambar_url !== undefined ? req.body.gambar_url : tentang.gambar_url;
+    if (req.file) {
+      final_gambar = getFileUrl(req, "cms_tentang", req.file.filename);
+    }
 
     if (is_active == 1) {
       await CmsTentangBeasiswa.update(
@@ -817,7 +870,7 @@ exports.updateCmsTentang = async (req, res) => {
     await tentang.update({
       judul_section: judul_section !== undefined ? judul_section : tentang.judul_section,
       deskripsi: deskripsi !== undefined ? deskripsi : tentang.deskripsi,
-      gambar_url: gambar_url !== undefined ? gambar_url : tentang.gambar_url,
+      gambar_url: final_gambar,
       is_active: is_active !== undefined ? is_active : tentang.is_active,
       updated_by: updated_by || null,
     });
