@@ -45,6 +45,67 @@ const CmsHero = sequelize.define(
       allowNull: true,
       comment: "Link tujuan tombol CTA",
     },
+    label_cta_2: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      comment: "Teks tombol Call-to-Action 2 (Contoh: Download Panduan)",
+    },
+    url_cta_2: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+      comment: "Link tujuan tombol CTA 2",
+    },
+
+    judul_2: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    subjudul_2: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    s2_label_cta: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    s2_url_cta: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+    },
+    s2_label_cta_2: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    s2_url_cta_2: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+    },
+
+    // --- KONTEN SLIDE 3 ---
+    judul_3: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
+    subjudul_3: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    s3_label_cta: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    s3_url_cta: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+    },
+    s3_label_cta_2: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+    },
+    s3_url_cta_2: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+    },
     is_active: {
       type: DataTypes.TINYINT(1),
       allowNull: false,

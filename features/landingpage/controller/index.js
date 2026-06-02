@@ -63,12 +63,14 @@ exports.getHeroById = async (req, res) => {
 exports.createHero = async (req, res) => {
   try {
     const {
-      judul, subjudul, label_cta, url_cta, is_active, created_by,
+      judul, subjudul, label_cta, url_cta, label_cta_2, url_cta_2,
+      judul_2, subjudul_2, s2_label_cta, s2_url_cta, s2_label_cta_2, s2_url_cta_2,
+      judul_3, subjudul_3, s3_label_cta, s3_url_cta, s3_label_cta_2, s3_url_cta_2,
+      is_active, created_by,
     } = req.body;
 
     if (!judul) return errorResponse(res, "Judul wajib diisi", 400);
 
-    // Prioritaskan dari file upload, jika tidak ada, ambil dari teks url
     let final_bg_1 = req.body.bg_image_url || null;
     let final_bg_2 = req.body.bg_image_url_2 || null;
     let final_bg_3 = req.body.bg_image_url_3 || null;
@@ -84,13 +86,21 @@ exports.createHero = async (req, res) => {
     }
 
     const newHero = await CmsHero.create({
-      judul,
-      subjudul: subjudul || null,
-      bg_image_url: final_bg_1,
-      bg_image_url_2: final_bg_2,
-      bg_image_url_3: final_bg_3,
-      label_cta: label_cta || "Daftar Sekarang",
-      url_cta: url_cta || "/daftar-penerima-beasiswa",
+      judul, subjudul: subjudul || null,
+      bg_image_url: final_bg_1, bg_image_url_2: final_bg_2, bg_image_url_3: final_bg_3,
+      label_cta: label_cta || "Daftar Sekarang", url_cta: url_cta || "/daftar-penerima-beasiswa",
+      label_cta_2: label_cta_2 || null, url_cta_2: url_cta_2 || null,
+      
+      // Data Slide 2
+      judul_2: judul_2 || null, subjudul_2: subjudul_2 || null,
+      s2_label_cta: s2_label_cta || null, s2_url_cta: s2_url_cta || null,
+      s2_label_cta_2: s2_label_cta_2 || null, s2_url_cta_2: s2_url_cta_2 || null,
+      
+      // Data Slide 3
+      judul_3: judul_3 || null, subjudul_3: subjudul_3 || null,
+      s3_label_cta: s3_label_cta || null, s3_url_cta: s3_url_cta || null,
+      s3_label_cta_2: s3_label_cta_2 || null, s3_url_cta_2: s3_url_cta_2 || null,
+
       is_active: is_active !== undefined ? is_active : 1,
       created_by: created_by || null,
       created_at: new Date(),
@@ -107,7 +117,10 @@ exports.updateHero = async (req, res) => {
   try {
     const { id } = req.params;
     const {
-      judul, subjudul, label_cta, url_cta, is_active, updated_by,
+      judul, subjudul, label_cta, url_cta, label_cta_2, url_cta_2,
+      judul_2, subjudul_2, s2_label_cta, s2_url_cta, s2_label_cta_2, s2_url_cta_2,
+      judul_3, subjudul_3, s3_label_cta, s3_url_cta, s3_label_cta_2, s3_url_cta_2,
+      is_active, updated_by,
     } = req.body;
 
     const hero = await CmsHero.findByPk(id);
@@ -130,11 +143,28 @@ exports.updateHero = async (req, res) => {
     await hero.update({
       judul: judul !== undefined ? judul : hero.judul,
       subjudul: subjudul !== undefined ? subjudul : hero.subjudul,
-      bg_image_url: final_bg_1,
-      bg_image_url_2: final_bg_2,
-      bg_image_url_3: final_bg_3,
+      bg_image_url: final_bg_1, bg_image_url_2: final_bg_2, bg_image_url_3: final_bg_3,
       label_cta: label_cta !== undefined ? label_cta : hero.label_cta,
       url_cta: url_cta !== undefined ? url_cta : hero.url_cta,
+      label_cta_2: label_cta_2 !== undefined ? label_cta_2 : hero.label_cta_2,
+      url_cta_2: url_cta_2 !== undefined ? url_cta_2 : hero.url_cta_2,
+      
+      // Update Slide 2
+      judul_2: judul_2 !== undefined ? judul_2 : hero.judul_2,
+      subjudul_2: subjudul_2 !== undefined ? subjudul_2 : hero.subjudul_2,
+      s2_label_cta: s2_label_cta !== undefined ? s2_label_cta : hero.s2_label_cta,
+      s2_url_cta: s2_url_cta !== undefined ? s2_url_cta : hero.s2_url_cta,
+      s2_label_cta_2: s2_label_cta_2 !== undefined ? s2_label_cta_2 : hero.s2_label_cta_2,
+      s2_url_cta_2: s2_url_cta_2 !== undefined ? s2_url_cta_2 : hero.s2_url_cta_2,
+
+      // Update Slide 3
+      judul_3: judul_3 !== undefined ? judul_3 : hero.judul_3,
+      subjudul_3: subjudul_3 !== undefined ? subjudul_3 : hero.subjudul_3,
+      s3_label_cta: s3_label_cta !== undefined ? s3_label_cta : hero.s3_label_cta,
+      s3_url_cta: s3_url_cta !== undefined ? s3_url_cta : hero.s3_url_cta,
+      s3_label_cta_2: s3_label_cta_2 !== undefined ? s3_label_cta_2 : hero.s3_label_cta_2,
+      s3_url_cta_2: s3_url_cta_2 !== undefined ? s3_url_cta_2 : hero.s3_url_cta_2,
+
       is_active: is_active !== undefined ? is_active : hero.is_active,
       updated_by: updated_by || null,
       updated_at: new Date(),

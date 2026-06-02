@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+// IMPORT MIDDLEWARE AUTH DISINI
+const checkAuthorization = require("../../../common/middleware/auth_middleware");
 
 const {
   getPersyaratanUmumAktifBeasiswa,
@@ -20,8 +22,11 @@ const {
   updatePengaturanBeasiswa,
 } = require("../controller");
 
-router.get("/all", getAllBeasiswa);
 router.get("/beasiswa-aktif", getBeasiswaAktif);
+
+router.use(checkAuthorization);
+
+router.get("/all", getAllBeasiswa);
 router.put("/tutup/:idBeasiswa", tutupBeasiswa);
 router.get("/persyaratan-umum-aktif", getPersyaratanUmumAktifBeasiswa);
 router.get("/persyaratan-khusus-aktif/jalur/:idJalur", getPersyaratanKhususAktifBeasiswaByJalur);
